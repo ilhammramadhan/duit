@@ -444,8 +444,8 @@
         "Verify in browser (build passes, visual check)"
       ],
       "priority": 25,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Created theme store in src/lib/stores/theme.ts with Light/Dark/System options. Theme page at /settings/theme with segmented button for selection. Dark mode palette applied in app.css via :root.dark. localStorage persistence with getThemePreference/setThemePreference. System mode follows prefers-color-scheme via media query listener. Theme transitions respect prefers-reduced-motion (instant switch if reduced). Added dark: classes to all key components (BottomNav, QuickInput, SpendingSummary, TransactionCard, ConfirmationModal, Settings pages). Typecheck and build pass."
     },
     {
       "id": "US-026",

@@ -19,6 +19,8 @@
 - Date formatting: Use `date-fns` with `import { id as idLocale } from 'date-fns/locale'` for Indonesian locale
 - Derived values: Use `$derived()` for computed values that depend on reactive props to avoid Svelte warnings
 - Category names: Use `getCategoryDisplayName(category)` from `$lib/stores/categoryNames` for customized display names
+- Theme: Use `initializeTheme()` from `$lib/stores/theme` in root layout to apply saved theme on load
+- Dark mode: Add `dark:` prefix to Tailwind classes for dark mode styling (e.g., `dark:bg-gray-800`)
 
 ---
 
@@ -568,4 +570,34 @@ Iteration: 24
   - deleteCategoryMapping(keyword) removes a mapping
   - CategoryPill accepts category prop and displays with correct colors
   - Use Record<string, number> for swipe state tracking across multiple list items
+---
+
+## 2026-01-11 - US-025
+Iteration: 25
+- Implemented theme toggle with Light, Dark, and System options
+- Created theme store in src/lib/stores/theme.ts with localStorage persistence:
+  - getThemePreference() / setThemePreference() for reading/writing preference
+  - getAppliedTheme() determines actual theme based on preference + system
+  - initializeTheme() for root layout to apply theme on app load
+  - prefersReducedMotion() checks for reduced motion preference
+- Updated /settings/theme page with segmented button using Sun/Moon/Monitor icons
+- Dark mode color palette added to app.css via :root.dark selector:
+  - Adjusted primary/secondary/accent colors for dark backgrounds
+  - Dark background (#111827) and light text (#F9FAFB)
+- Theme transitions use .theme-transition class with 0.3s duration
+- Transitions disabled when prefers-reduced-motion is set
+- Added dark: classes to key components:
+  - BottomNav, QuickInput, SpendingSummary, TransactionCard
+  - ConfirmationModal, Settings pages (main + theme)
+  - Home page background and dialogs
+- System mode follows device prefers-color-scheme via media query listener
+- Typecheck passes (0 errors, 3 warnings), build passes, all 107 tests pass
+- Files changed: src/lib/stores/theme.ts (new), src/app.css, src/routes/+layout.svelte, src/routes/settings/theme/+page.svelte, src/lib/components/*.svelte, src/routes/+page.svelte, src/routes/settings/+page.svelte
+- **Learnings for future iterations:**
+  - Dark mode uses :root.dark selector in CSS for CSS variable overrides
+  - Toggle dark class on <html> element for dark mode (document.documentElement)
+  - Use dark: prefix for Tailwind classes (e.g., dark:bg-gray-800)
+  - Theme store pattern: store preference in localStorage, apply via class toggle
+  - Use media query listener for system theme changes: window.matchMedia('(prefers-color-scheme: dark)')
+  - Check prefers-reduced-motion to disable theme transitions for accessibility
 ---
