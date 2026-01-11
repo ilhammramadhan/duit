@@ -5,6 +5,7 @@
 	import CategoryBreakdown from '$lib/components/CategoryBreakdown.svelte';
 	import AIInsightCard from '$lib/components/AIInsightCard.svelte';
 	import TransactionCard from '$lib/components/TransactionCard.svelte';
+	import TransactionListSkeleton from '$lib/components/TransactionListSkeleton.svelte';
 	import ConfirmationModal from '$lib/components/ConfirmationModal.svelte';
 	import { startOfMonth, endOfMonth, format } from 'date-fns';
 	import { id as idLocale } from 'date-fns/locale';
@@ -15,11 +16,16 @@
 	// Selected month state - defaults to current month
 	let selectedDate = $state(startOfMonth(new Date()));
 
+	// Loading state for transactions
+	let isLoadingTransactions = $state(true);
+
 	// Transactions for selected month, grouped by date
 	let transactions: Transaction[] = $state([]);
 
 	// Subscribe to transactions for the selected month
 	$effect(() => {
+		// Reset loading state when month changes
+		isLoadingTransactions = true;
 		const monthStart = startOfMonth(selectedDate);
 		const monthEnd = endOfMonth(selectedDate);
 		// Set end of day for monthEnd
@@ -36,9 +42,11 @@
 			next: (value) => {
 				// Sort by date descending (newest first)
 				transactions = value.sort((a, b) => b.date.getTime() - a.date.getTime());
+				isLoadingTransactions = false;
 			},
 			error: (err) => {
 				console.error('Failed to load transactions:', err);
+				isLoadingTransactions = false;
 			}
 		});
 
@@ -235,7 +243,7 @@
 	}
 </script>
 
-<div class="p-4 pb-20 space-y-4">
+<div class="p-4 pb-20 space-y-4 bg-background dark:bg-gray-900 min-h-screen">
 	<!-- Month Selector -->
 	<MonthSelector {selectedDate} onMonthChange={handleMonthChange} />
 
@@ -250,13 +258,16 @@
 
 	<!-- Monthly Transactions List -->
 	<div class="mt-6">
-		<h2 class="text-lg font-semibold text-text mb-3">Transactions</h2>
+		<h2 class="text-lg font-semibold text-text dark:text-gray-100 mb-3">Transactions</h2>
 
-		{#if transactions.length === 0}
+		{#if isLoadingTransactions}
+			<!-- Loading skeleton -->
+			<TransactionListSkeleton count={5} />
+		{:else if transactions.length === 0}
 			<!-- Empty state -->
-			<div class="bg-white rounded-xl p-8 text-center">
-				<p class="text-gray-400 text-sm">No transactions this month</p>
-				<p class="text-gray-300 text-xs mt-1">Add transactions on the Home tab</p>
+			<div class="bg-white dark:bg-gray-800 rounded-xl p-8 text-center">
+				<p class="text-gray-400 dark:text-gray-500 text-sm">No transactions this month</p>
+				<p class="text-gray-300 dark:text-gray-600 text-xs mt-1">Add transactions on the Home tab</p>
 			</div>
 		{:else}
 			<!-- Grouped transaction list -->
@@ -264,7 +275,7 @@
 				{#each groupedTransactions as group (group.dateKey)}
 					<!-- Date header -->
 					<div>
-						<h3 class="text-sm font-medium text-gray-500 mb-2 capitalize">{group.dateLabel}</h3>
+						<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 capitalize">{group.dateLabel}</h3>
 						<div class="space-y-2">
 							{#each group.transactions as transaction (transaction.id)}
 								<div
@@ -323,20 +334,20 @@
 		tabindex="-1"
 	>
 		<div
-			class="bg-white rounded-xl p-6 w-full max-w-sm"
+			class="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-sm"
 			onclick={(e) => e.stopPropagation()}
 			role="dialog"
 			tabindex="-1"
 		>
-			<h3 class="text-lg font-semibold text-text mb-2">Delete Transaction?</h3>
-			<p class="text-gray-500 text-sm mb-6">
+			<h3 class="text-lg font-semibold text-text dark:text-gray-100 mb-2">Delete Transaction?</h3>
+			<p class="text-gray-500 dark:text-gray-400 text-sm mb-6">
 				Are you sure you want to delete "{deletingTransaction?.description}"? This action cannot be undone.
 			</p>
 			<div class="flex gap-3">
 				<button
 					type="button"
 					onclick={cancelDelete}
-					class="flex-1 py-2.5 px-4 rounded-lg border border-border text-text font-medium hover:bg-gray-50 transition-colors"
+					class="flex-1 py-2.5 px-4 rounded-lg border border-border dark:border-gray-600 text-text dark:text-gray-100 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
 				>
 					Cancel
 				</button>

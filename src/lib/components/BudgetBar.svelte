@@ -3,6 +3,7 @@
 	import { liveQuery } from 'dexie';
 	import { db, type Budget, type Category } from '$lib/db';
 	import { getCategoryDisplayName } from '$lib/stores/categoryNames';
+	import BudgetBarSkeleton from './BudgetBarSkeleton.svelte';
 
 	// Only expense categories (not income)
 	const EXPENSE_CATEGORIES: Category[] = ['food', 'transport', 'bills', 'shopping', 'entertainment', 'other'];
@@ -72,6 +73,9 @@
 		percentage: number;
 	}
 
+	// Loading state
+	let isLoading = $state(true);
+
 	// Live query for budgets
 	const budgetsQuery = liveQuery(() => db.budgets.toArray());
 
@@ -128,17 +132,22 @@
 				})
 				// Sort by percentage (highest first to show most concerning)
 				.sort((a: BudgetWithSpending, b: BudgetWithSpending) => b.percentage - a.percentage);
+
+			// Data loaded
+			isLoading = false;
 		}
 	});
 </script>
 
-{#if budgetsWithSpending.length > 0}
+{#if isLoading}
+	<BudgetBarSkeleton count={2} />
+{:else if budgetsWithSpending.length > 0}
 	<div class="mt-4 space-y-3">
-		<h3 class="text-sm font-medium text-gray-500">Budget Overview</h3>
+		<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Budget Overview</h3>
 
 		{#each budgetsWithSpending as budget (budget.category)}
 			{@const IconComponent = CATEGORY_ICONS[budget.category]}
-			<div class="bg-white rounded-xl p-3 shadow-sm border border-border">
+			<div class="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm border border-border dark:border-gray-700">
 				<!-- Header: Icon, Category Name, Amount / Limit -->
 				<div class="flex items-center gap-3 mb-2">
 					<!-- Category Icon -->
@@ -148,22 +157,22 @@
 
 					<!-- Category Name & Percentage -->
 					<div class="flex-1 min-w-0">
-						<p class="font-medium text-text text-sm">{getCategoryDisplayName(budget.category)}</p>
+						<p class="font-medium text-text dark:text-gray-100 text-sm">{getCategoryDisplayName(budget.category)}</p>
 					</div>
 
 					<!-- Amount / Limit -->
 					<div class="flex-shrink-0 text-right">
-						<p class="text-sm {budget.percentage >= 100 ? 'text-danger font-semibold' : budget.percentage >= 80 ? 'text-warning font-medium' : 'text-text'}">
+						<p class="text-sm {budget.percentage >= 100 ? 'text-danger font-semibold' : budget.percentage >= 80 ? 'text-warning font-medium' : 'text-text dark:text-gray-100'}">
 							{formatRupiah(budget.spent)} / {formatRupiah(budget.limit)}
 						</p>
-						<p class="text-xs {budget.percentage >= 100 ? 'text-danger' : budget.percentage >= 80 ? 'text-warning' : 'text-gray-400'}">
+						<p class="text-xs {budget.percentage >= 100 ? 'text-danger' : budget.percentage >= 80 ? 'text-warning' : 'text-gray-400 dark:text-gray-500'}">
 							{budget.percentage}%
 						</p>
 					</div>
 				</div>
 
 				<!-- Progress Bar -->
-				<div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+				<div class="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
 					<div
 						class="h-full rounded-full transition-all duration-300 {getBarColor(budget.percentage)}"
 						style="width: {Math.min(budget.percentage, 100)}%"

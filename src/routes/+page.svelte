@@ -5,11 +5,18 @@
 	import SpendingSummary from '$lib/components/SpendingSummary.svelte';
 	import BudgetBar from '$lib/components/BudgetBar.svelte';
 	import TransactionCard from '$lib/components/TransactionCard.svelte';
+	import TransactionListSkeleton from '$lib/components/TransactionListSkeleton.svelte';
 	import { parseInput } from '$lib/services/parser';
 	import { categorizeWithFallback } from '$lib/services/categorizer';
 	import { db, deleteTransaction, type Category, type Transaction, type BudgetWarning } from '$lib/db';
-	import { AlertTriangle, AlertCircle, X } from 'lucide-svelte';
+	import { AlertTriangle, AlertCircle, X, Loader2 } from 'lucide-svelte';
 	import { getCategoryDisplayName } from '$lib/stores/categoryNames';
+
+	// Loading state for transactions
+	let isLoadingTransactions = $state(true);
+
+	// Loading state for AI categorization
+	let isCategorizingAI = $state(false);
 
 	// Recent transactions (last 10, newest first)
 	let transactions: Transaction[] = $state([]);
@@ -23,9 +30,11 @@
 		const subscription = transactionsQuery.subscribe({
 			next: (value) => {
 				transactions = value;
+				isLoadingTransactions = false;
 			},
 			error: (err) => {
 				console.error('Failed to load transactions:', err);
+				isLoadingTransactions = false;
 			}
 		});
 		return () => subscription.unsubscribe();
@@ -68,18 +77,25 @@
 			return;
 		}
 
-		// Get suggested category
-		const category = await categorizeWithFallback(parsed.description);
+		// Show loading spinner during AI categorization
+		isCategorizingAI = true;
 
-		// Set modal data for new transaction
-		parsedDescription = parsed.description;
-		parsedAmount = parsed.amount;
-		suggestedCategory = category;
-		isEditMode = false;
-		editingTransaction = null;
+		try {
+			// Get suggested category
+			const category = await categorizeWithFallback(parsed.description);
 
-		// Show the modal
-		showModal = true;
+			// Set modal data for new transaction
+			parsedDescription = parsed.description;
+			parsedAmount = parsed.amount;
+			suggestedCategory = category;
+			isEditMode = false;
+			editingTransaction = null;
+
+			// Show the modal
+			showModal = true;
+		} finally {
+			isCategorizingAI = false;
+		}
 	}
 
 	function handleTransactionClick(transaction: Transaction) {
@@ -223,7 +239,10 @@
 	<div class="mt-6">
 		<h2 class="text-lg font-semibold text-text dark:text-gray-100 mb-3">Recent Transactions</h2>
 
-		{#if transactions.length === 0}
+		{#if isLoadingTransactions}
+			<!-- Loading skeleton -->
+			<TransactionListSkeleton count={3} />
+		{:else if transactions.length === 0}
 			<!-- Empty state -->
 			<div class="bg-white dark:bg-gray-800 rounded-xl p-8 text-center">
 				<p class="text-gray-400 dark:text-gray-500 text-sm">No transactions yet</p>
@@ -337,6 +356,16 @@
 			>
 				<X size={16} />
 			</button>
+		</div>
+	</div>
+{/if}
+
+<!-- AI Categorization Loading Overlay -->
+{#if isCategorizingAI}
+	<div class="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
+		<div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-xl flex flex-col items-center gap-3">
+			<Loader2 size={32} class="text-primary animate-spin" />
+			<p class="text-sm text-gray-600 dark:text-gray-300">Categorizing...</p>
 		</div>
 	</div>
 {/if}
