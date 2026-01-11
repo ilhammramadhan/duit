@@ -137,5 +137,106 @@ export function isGeminiAvailable(): boolean {
   return !!getApiKey();
 }
 
+/**
+ * Spending data for generating insights
+ */
+export interface SpendingData {
+  totalIncome: number;
+  totalExpenses: number;
+  byCategory: { category: string; amount: number; percentage: number }[];
+  budgetStatus: { category: string; spent: number; limit: number; percentage: number }[];
+}
+
+/**
+ * Generate AI-powered savings tip based on monthly spending data
+ * Returns a 1-2 sentence actionable tip in Bahasa Indonesia
+ *
+ * @param spendingData - Object containing month's spending summary
+ * @returns Actionable tip string or fallback message if API unavailable
+ */
+export async function generateInsight(spendingData: SpendingData): Promise<string> {
+  const apiKey = getApiKey();
+
+  // If no API key, return fallback message
+  if (!apiKey) {
+    return 'Tips tidak tersedia saat ini';
+  }
+
+  // Build context from spending data
+  const categoryBreakdown = spendingData.byCategory
+    .map(c => `${c.category}: Rp ${c.amount.toLocaleString('id-ID')} (${c.percentage}%)`)
+    .join(', ');
+
+  const budgetInfo = spendingData.budgetStatus
+    .map(b => `${b.category}: ${b.percentage}% dari budget`)
+    .join(', ');
+
+  const netAmount = spendingData.totalIncome - spendingData.totalExpenses;
+  const savingsRate = spendingData.totalIncome > 0
+    ? Math.round((netAmount / spendingData.totalIncome) * 100)
+    : 0;
+
+  const prompt = `Kamu adalah asisten keuangan pribadi. Berikan 1-2 kalimat tips finansial yang spesifik dan actionable dalam Bahasa Indonesia berdasarkan data pengeluaran bulan ini:
+
+Total Pemasukan: Rp ${spendingData.totalIncome.toLocaleString('id-ID')}
+Total Pengeluaran: Rp ${spendingData.totalExpenses.toLocaleString('id-ID')}
+Sisa/Tabungan: Rp ${netAmount.toLocaleString('id-ID')} (${savingsRate}% dari pemasukan)
+
+Pengeluaran per kategori: ${categoryBreakdown || 'Tidak ada data'}
+
+Status budget: ${budgetInfo || 'Tidak ada budget yang diatur'}
+
+Berikan tips yang relevan dengan pola pengeluaran ini. Fokus pada satu area yang bisa diperbaiki atau apresiasi jika sudah bagus. Jangan menyebutkan angka-angka detail, cukup berikan saran umum yang actionable.`;
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [{ text: prompt }]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 150
+          }
+        })
+      }
+    );
+
+    if (!response.ok) {
+      console.warn(`Gemini API error: ${response.status} ${response.statusText}`);
+      return 'Tips tidak tersedia saat ini';
+    }
+
+    const data = await response.json();
+
+    // Extract text from Gemini response
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!text) {
+      console.warn('Gemini API returned empty response for insight');
+      return 'Tips tidak tersedia saat ini';
+    }
+
+    // Clean up the response (remove quotes, trim whitespace)
+    return text.trim().replace(/^["']|["']$/g, '');
+  } catch (error) {
+    // Handle network errors gracefully
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      console.warn('Network error calling Gemini API for insight (possibly offline)');
+    } else {
+      console.warn('Error calling Gemini API for insight:', error);
+    }
+    return 'Tips tidak tersedia saat ini';
+  }
+}
+
 // Export for testing
 export { VALID_CATEGORIES, parseCategory, getApiKey };

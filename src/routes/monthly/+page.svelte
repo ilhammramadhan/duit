@@ -2,6 +2,7 @@
 	import MonthSelector from '$lib/components/MonthSelector.svelte';
 	import MonthlySummary from '$lib/components/MonthlySummary.svelte';
 	import CategoryBreakdown from '$lib/components/CategoryBreakdown.svelte';
+	import AIInsightCard from '$lib/components/AIInsightCard.svelte';
 	import { startOfMonth } from 'date-fns';
 
 	// Selected month state - defaults to current month
@@ -15,6 +16,9 @@
 <div class="p-4 pb-20 space-y-4">
 	<!-- Month Selector -->
 	<MonthSelector {selectedDate} onMonthChange={handleMonthChange} />
+
+	<!-- AI Insights Card -->
+	<AIInsightCard {selectedDate} />
 
 	<!-- Income vs Expenses Summary -->
 	<MonthlySummary {selectedDate} />
