@@ -2,5 +2,25 @@
 # Branch: ralph/duit-financial-tracker
 # Started: 2026-01-11
 
+## Codebase Patterns
+- Tailwind v4 uses `@import "tailwindcss"` and `@theme { }` for custom colors
+- Svelte 5 runes mode uses `$props()` instead of `export let`
+- Custom colors defined both in `@theme` (for Tailwind classes) and `:root` (for CSS variables)
+
+---
+
+## 2026-01-11 - US-001
+Iteration: 1
+- Verified SvelteKit project initialization with Svelte 5 (runes mode)
+- Verified Tailwind CSS v4 with custom color palette in @theme block
+- Verified Plus Jakarta Sans font imported via Google Fonts
+- Verified CSS variables in app.css for colors
+- Verified npm run dev works (Vite v6.4.1)
+- Verified typecheck passes (0 errors, 0 warnings)
+- All acceptance criteria already met from previous commit
+- **Learnings for future iterations:**
+  - Tailwind v4 uses `@theme { }` block syntax for custom colors instead of tailwind.config.js
+  - Svelte 5 runes mode: use `$props()` for receiving props, `$state()` for reactive state
+  - Plus Jakarta Sans loaded via Google Fonts CDN in app.html
 ---
 
