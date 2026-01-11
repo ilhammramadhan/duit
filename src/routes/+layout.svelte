@@ -2,6 +2,7 @@
 	import '../app.css';
 	import { onMount } from 'svelte';
 	import BottomNav from '$lib/components/BottomNav.svelte';
+	import Toast from '$lib/components/Toast.svelte';
 	import { initializeTheme } from '$lib/stores/theme';
 
 	let { children } = $props();
@@ -16,3 +17,6 @@
 </div>
 
 <BottomNav />
+
+<!-- Global toast notifications -->
+<Toast />
