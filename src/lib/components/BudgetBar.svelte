@@ -2,6 +2,7 @@
 	import { Utensils, Car, Receipt, ShoppingBag, Film, HelpCircle } from 'lucide-svelte';
 	import { liveQuery } from 'dexie';
 	import { db, type Budget, type Category } from '$lib/db';
+	import { getCategoryDisplayName } from '$lib/stores/categoryNames';
 
 	// Only expense categories (not income)
 	const EXPENSE_CATEGORIES: Category[] = ['food', 'transport', 'bills', 'shopping', 'entertainment', 'other'];
@@ -15,17 +16,6 @@
 		entertainment: Film,
 		income: Utensils, // Not used but needed for type
 		other: HelpCircle
-	};
-
-	// Category display names
-	const CATEGORY_LABELS: Record<Category, string> = {
-		food: 'Food',
-		transport: 'Transport',
-		bills: 'Bills',
-		shopping: 'Shopping',
-		entertainment: 'Entertainment',
-		income: 'Income',
-		other: 'Other'
 	};
 
 	// Category icon background colors
@@ -158,7 +148,7 @@
 
 					<!-- Category Name & Percentage -->
 					<div class="flex-1 min-w-0">
-						<p class="font-medium text-text text-sm">{CATEGORY_LABELS[budget.category]}</p>
+						<p class="font-medium text-text text-sm">{getCategoryDisplayName(budget.category)}</p>
 					</div>
 
 					<!-- Amount / Limit -->

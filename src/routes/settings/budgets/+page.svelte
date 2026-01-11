@@ -2,20 +2,10 @@
 	import { Utensils, Car, Receipt, ShoppingBag, Film, HelpCircle, ChevronLeft, Check } from 'lucide-svelte';
 	import { liveQuery } from 'dexie';
 	import { db, setBudget, type Category, type Budget } from '$lib/db';
+	import { getCategoryDisplayName } from '$lib/stores/categoryNames';
 
 	// Expense categories only (no income)
 	const EXPENSE_CATEGORIES: Category[] = ['food', 'transport', 'bills', 'shopping', 'entertainment', 'other'];
-
-	// Category display names
-	const CATEGORY_LABELS: Record<Category, string> = {
-		food: 'Food',
-		transport: 'Transport',
-		bills: 'Bills',
-		shopping: 'Shopping',
-		entertainment: 'Entertainment',
-		income: 'Income',
-		other: 'Other'
-	};
 
 	// Category icons mapping
 	const CATEGORY_ICONS: Record<Category, typeof Utensils> = {
@@ -102,9 +92,9 @@
 
 		// Show toast
 		if (amount > 0) {
-			toastMessage = `${CATEGORY_LABELS[category]} budget set to Rp ${amount.toLocaleString('id-ID')}`;
+			toastMessage = `${getCategoryDisplayName(category)} budget set to Rp ${amount.toLocaleString('id-ID')}`;
 		} else {
-			toastMessage = `${CATEGORY_LABELS[category]} budget limit removed`;
+			toastMessage = `${getCategoryDisplayName(category)} budget limit removed`;
 		}
 		showToast = true;
 		setTimeout(() => {
@@ -152,7 +142,7 @@
 
 				<!-- Category Name -->
 				<div class="flex-1">
-					<p class="font-medium text-text">{CATEGORY_LABELS[category]}</p>
+					<p class="font-medium text-text">{getCategoryDisplayName(category)}</p>
 				</div>
 
 				<!-- Input Field -->

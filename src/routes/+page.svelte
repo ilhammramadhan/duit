@@ -9,6 +9,7 @@
 	import { categorizeWithFallback } from '$lib/services/categorizer';
 	import { db, deleteTransaction, type Category, type Transaction, type BudgetWarning } from '$lib/db';
 	import { AlertTriangle, AlertCircle, X } from 'lucide-svelte';
+	import { getCategoryDisplayName } from '$lib/stores/categoryNames';
 
 	// Recent transactions (last 10, newest first)
 	let transactions: Transaction[] = $state([]);
@@ -54,17 +55,6 @@
 	let budgetToastType = $state<'warning' | 'danger'>('warning');
 	let budgetToastMessage = $state('');
 	let budgetToastTimeout: ReturnType<typeof setTimeout> | null = null;
-
-	// Category labels for toast messages
-	const CATEGORY_LABELS: Record<Category, string> = {
-		food: 'Food',
-		transport: 'Transport',
-		bills: 'Bills',
-		shopping: 'Shopping',
-		entertainment: 'Entertainment',
-		income: 'Income',
-		other: 'Other'
-	};
 
 	async function handleQuickInputSubmit(event: CustomEvent<string>) {
 		const input = event.detail;
@@ -191,10 +181,10 @@
 		// Set toast type and message based on warning type
 		if (warning.type === 'exceeded') {
 			budgetToastType = 'danger';
-			budgetToastMessage = `${CATEGORY_LABELS[warning.category]} budget exceeded by ${formatRupiah(warning.exceededBy || 0)}`;
+			budgetToastMessage = `${getCategoryDisplayName(warning.category)} budget exceeded by ${formatRupiah(warning.exceededBy || 0)}`;
 		} else if (warning.type === 'approaching') {
 			budgetToastType = 'warning';
-			budgetToastMessage = `${CATEGORY_LABELS[warning.category]} budget at ${warning.percentage}%`;
+			budgetToastMessage = `${getCategoryDisplayName(warning.category)} budget at ${warning.percentage}%`;
 		} else {
 			return; // No warning needed
 		}

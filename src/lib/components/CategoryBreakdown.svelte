@@ -3,6 +3,7 @@
 	import { liveQuery } from 'dexie';
 	import { startOfMonth, endOfMonth } from 'date-fns';
 	import { Utensils, Car, Receipt, ShoppingBag, Film, HelpCircle } from 'lucide-svelte';
+	import { getCategoryDisplayName } from '$lib/stores/categoryNames';
 
 	interface Props {
 		selectedDate: Date;
@@ -28,16 +29,6 @@
 		shopping: 'bg-pink-100 text-pink-600',
 		entertainment: 'bg-purple-100 text-purple-600',
 		other: 'bg-gray-100 text-gray-600'
-	};
-
-	// Category display names
-	const CATEGORY_NAMES: Record<Exclude<Category, 'income'>, string> = {
-		food: 'Food',
-		transport: 'Transport',
-		bills: 'Bills',
-		shopping: 'Shopping',
-		entertainment: 'Entertainment',
-		other: 'Other'
 	};
 
 	// Progress bar colors based on category
@@ -160,7 +151,7 @@
 					<!-- Category Details -->
 					<div class="flex-1 min-w-0">
 						<div class="flex justify-between items-center mb-1">
-							<span class="text-sm font-medium text-text">{CATEGORY_NAMES[item.category]}</span>
+							<span class="text-sm font-medium text-text">{getCategoryDisplayName(item.category)}</span>
 							<div class="flex items-center gap-2">
 								<span class="text-sm font-semibold text-text">{formatRupiah(item.amount)}</span>
 								<span class="text-xs text-gray-500 min-w-[3rem] text-right">{item.percentage}%</span>

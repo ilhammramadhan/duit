@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Category } from '$lib/db';
+	import { getCategoryDisplayName } from '$lib/stores/categoryNames';
 
 	interface Props {
 		category: Category;
@@ -8,16 +9,8 @@
 
 	let { category, size = 'md' }: Props = $props();
 
-	// Category display names
-	const CATEGORY_LABELS: Record<Category, string> = {
-		food: 'Food',
-		transport: 'Transport',
-		bills: 'Bills',
-		shopping: 'Shopping',
-		entertainment: 'Entertainment',
-		income: 'Income',
-		other: 'Other'
-	};
+	// Get the display name for this category (supports custom renamed categories)
+	const displayName = $derived(getCategoryDisplayName(category));
 
 	// Category background colors (using Tailwind classes)
 	const CATEGORY_COLORS: Record<Category, string> = {
@@ -38,5 +31,5 @@
 </script>
 
 <span class="inline-flex items-center rounded-full font-medium {CATEGORY_COLORS[category]} {SIZE_CLASSES[size]}">
-	{CATEGORY_LABELS[category]}
+	{displayName}
 </span>

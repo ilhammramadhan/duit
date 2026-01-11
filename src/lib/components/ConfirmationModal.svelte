@@ -2,20 +2,10 @@
 	import { X } from 'lucide-svelte';
 	import { createEventDispatcher } from 'svelte';
 	import { addTransaction, updateTransaction, checkBudgetWarning, type Category, type TransactionType, type Transaction, type BudgetWarning } from '$lib/db';
+	import { getCategoryDisplayName } from '$lib/stores/categoryNames';
 
 	// All available categories
 	const CATEGORIES: Category[] = ['food', 'transport', 'bills', 'shopping', 'entertainment', 'income', 'other'];
-
-	// Category display names
-	const CATEGORY_LABELS: Record<Category, string> = {
-		food: 'Food',
-		transport: 'Transport',
-		bills: 'Bills',
-		shopping: 'Shopping',
-		entertainment: 'Entertainment',
-		income: 'Income',
-		other: 'Other'
-	};
 
 	// Props
 	interface Props {
@@ -230,7 +220,7 @@
 								? 'bg-primary text-white'
 								: 'bg-background text-text hover:bg-gray-200'}"
 						>
-							{CATEGORY_LABELS[category]}
+							{getCategoryDisplayName(category)}
 						</button>
 					{/each}
 				</div>
