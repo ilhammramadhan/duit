@@ -1,6 +1,7 @@
 <script lang="ts">
 	import QuickInput from '$lib/components/QuickInput.svelte';
 	import ConfirmationModal from '$lib/components/ConfirmationModal.svelte';
+	import SpendingSummary from '$lib/components/SpendingSummary.svelte';
 	import { parseInput } from '$lib/services/parser';
 	import { categorizeWithFallback } from '$lib/services/categorizer';
 	import type { Category } from '$lib/db';
@@ -48,7 +49,10 @@
 
 <div class="p-4 pb-20">
 	<h1 class="text-2xl font-bold text-text">Duit</h1>
-	<p class="text-gray-500 mt-2">Simple Financial Tracker</p>
+	<p class="text-gray-500 mt-2 mb-4">Simple Financial Tracker</p>
+
+	<!-- Spending Summary -->
+	<SpendingSummary />
 
 	<!-- Transaction list will go here in future stories -->
 </div>
