@@ -1,7 +1,9 @@
 <script lang="ts">
-	import { X } from 'lucide-svelte';
+	import { X, Calendar, Trash2 } from 'lucide-svelte';
 	import { createEventDispatcher } from 'svelte';
-	import { addTransaction, updateTransaction, checkBudgetWarning, type Category, type TransactionType, type Transaction, type BudgetWarning } from '$lib/db';
+	import { format } from 'date-fns';
+	import { id as idLocale } from 'date-fns/locale';
+	import { addTransaction, updateTransaction, deleteTransaction, checkBudgetWarning, type Category, type TransactionType, type Transaction, type BudgetWarning } from '$lib/db';
 	import { getCategoryDisplayName } from '$lib/stores/categoryNames';
 
 	// All available categories
@@ -19,30 +21,95 @@
 
 	let { show = $bindable(), description, amount, suggestedCategory, isEditMode = false, editingTransaction = null }: Props = $props();
 
-	// Local state
+	// Local state for form fields (editable)
+	let editableDescription = $state('');
+	let editableAmount = $state(0);
+	let editableAmountString = $state(''); // For formatted input display
+	let editableDate = $state<Date>(new Date());
 	let selectedCategory: Category = $state('other');
 	let transactionType: TransactionType = $state('expense');
 	let isSaving = $state(false);
+	let isDeleting = $state(false);
+	let showDeleteConfirm = $state(false);
 
-	// Update selected category when suggested category changes or when editing
+	// Update form fields when modal opens or editing transaction changes
 	$effect(() => {
-		if (isEditMode && editingTransaction) {
-			selectedCategory = editingTransaction.category;
-			transactionType = editingTransaction.type;
-		} else {
-			selectedCategory = suggestedCategory;
-			// Auto-set type to income if income category is suggested
-			transactionType = suggestedCategory === 'income' ? 'income' : 'expense';
+		if (show) {
+			if (isEditMode && editingTransaction) {
+				editableDescription = editingTransaction.description;
+				editableAmount = editingTransaction.amount;
+				editableAmountString = editingTransaction.amount.toLocaleString('id-ID');
+				editableDate = editingTransaction.date;
+				selectedCategory = editingTransaction.category;
+				transactionType = editingTransaction.type;
+			} else {
+				editableDescription = description;
+				editableAmount = amount;
+				editableAmountString = amount.toLocaleString('id-ID');
+				editableDate = new Date();
+				selectedCategory = suggestedCategory;
+				// Auto-set type to income if income category is suggested
+				transactionType = suggestedCategory === 'income' ? 'income' : 'expense';
+			}
+			// Reset delete confirmation when modal opens
+			showDeleteConfirm = false;
 		}
 	});
 
-	const dispatch = createEventDispatcher<{ confirm: void; cancel: void; budgetWarning: BudgetWarning }>();
+	const dispatch = createEventDispatcher<{ confirm: void; cancel: void; delete: void; budgetWarning: BudgetWarning }>();
 
 	/**
 	 * Format amount in Indonesian Rupiah format
 	 */
 	function formatRupiah(value: number): string {
 		return 'Rp ' + value.toLocaleString('id-ID');
+	}
+
+	/**
+	 * Parse amount string input (handles thousand separators)
+	 */
+	function parseAmountInput(value: string): number {
+		// Remove all non-digit characters
+		const digits = value.replace(/\D/g, '');
+		return parseInt(digits, 10) || 0;
+	}
+
+	/**
+	 * Handle amount input change
+	 */
+	function handleAmountInput(event: Event) {
+		const target = event.target as HTMLInputElement;
+		const rawValue = target.value;
+
+		// Parse and store the numeric value
+		editableAmount = parseAmountInput(rawValue);
+
+		// Format for display
+		if (editableAmount > 0) {
+			editableAmountString = editableAmount.toLocaleString('id-ID');
+		} else {
+			editableAmountString = '';
+		}
+	}
+
+	/**
+	 * Format date for date input (yyyy-MM-dd)
+	 */
+	function formatDateForInput(date: Date): string {
+		const year = date.getFullYear();
+		const month = String(date.getMonth() + 1).padStart(2, '0');
+		const day = String(date.getDate()).padStart(2, '0');
+		return `${year}-${month}-${day}`;
+	}
+
+	/**
+	 * Handle date input change
+	 */
+	function handleDateChange(event: Event) {
+		const target = event.target as HTMLInputElement;
+		if (target.value) {
+			editableDate = new Date(target.value + 'T12:00:00');
+		}
 	}
 
 	/**
@@ -74,27 +141,27 @@
 	 * Save transaction to IndexedDB (add new or update existing)
 	 */
 	async function handleConfirm() {
-		if (isSaving) return;
+		if (isSaving || editableAmount <= 0 || !editableDescription.trim()) return;
 
 		isSaving = true;
 		try {
 			if (isEditMode && editingTransaction?.id) {
-				// Update existing transaction
+				// Update existing transaction with editable fields
 				await updateTransaction(editingTransaction.id, {
-					description,
-					amount,
+					description: editableDescription.trim(),
+					amount: editableAmount,
 					category: selectedCategory,
 					type: transactionType,
-					date: editingTransaction.date
+					date: editableDate
 				});
 			} else {
 				// Add new transaction
 				await addTransaction({
-					description,
-					amount,
+					description: editableDescription.trim(),
+					amount: editableAmount,
 					category: selectedCategory,
 					type: transactionType,
-					date: new Date()
+					date: editableDate
 				});
 			}
 
@@ -112,6 +179,39 @@
 			console.error('Failed to save transaction:', error);
 		} finally {
 			isSaving = false;
+		}
+	}
+
+	/**
+	 * Show delete confirmation dialog
+	 */
+	function handleDeleteClick() {
+		showDeleteConfirm = true;
+	}
+
+	/**
+	 * Cancel delete and hide confirmation
+	 */
+	function cancelDelete() {
+		showDeleteConfirm = false;
+	}
+
+	/**
+	 * Confirm delete and remove transaction
+	 */
+	async function confirmDelete() {
+		if (isDeleting || !editingTransaction?.id) return;
+
+		isDeleting = true;
+		try {
+			await deleteTransaction(editingTransaction.id);
+			dispatch('delete');
+			show = false;
+		} catch (error) {
+			console.error('Failed to delete transaction:', error);
+		} finally {
+			isDeleting = false;
+			showDeleteConfirm = false;
 		}
 	}
 
@@ -170,16 +270,52 @@
 
 			<!-- Transaction details -->
 			<div class="space-y-4 mb-6">
-				<!-- Description -->
+				<!-- Description (editable) -->
 				<div class="bg-background dark:bg-gray-700 rounded-lg p-4">
-					<p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Description</p>
-					<p class="text-text dark:text-gray-100 font-medium capitalize">{description}</p>
+					<label for="description-input" class="text-sm text-gray-500 dark:text-gray-400 mb-1 block">Description</label>
+					<input
+						id="description-input"
+						type="text"
+						bind:value={editableDescription}
+						placeholder="Enter description"
+						class="w-full bg-transparent text-text dark:text-gray-100 font-medium capitalize text-base border-none outline-none focus:ring-0 p-0"
+					/>
 				</div>
 
-				<!-- Amount -->
+				<!-- Amount (editable) -->
 				<div class="bg-background dark:bg-gray-700 rounded-lg p-4">
-					<p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Amount</p>
-					<p class="text-2xl font-bold text-text dark:text-gray-100">{formatRupiah(amount)}</p>
+					<label for="amount-input" class="text-sm text-gray-500 dark:text-gray-400 mb-1 block">Amount</label>
+					<div class="flex items-center">
+						<span class="text-2xl font-bold text-text dark:text-gray-100 mr-1">Rp</span>
+						<input
+							id="amount-input"
+							type="text"
+							inputmode="numeric"
+							value={editableAmountString}
+							oninput={handleAmountInput}
+							placeholder="0"
+							class="flex-1 bg-transparent text-2xl font-bold text-text dark:text-gray-100 border-none outline-none focus:ring-0 p-0"
+						/>
+					</div>
+				</div>
+
+				<!-- Date (editable) -->
+				<div class="bg-background dark:bg-gray-700 rounded-lg p-4">
+					<label for="date-input" class="text-sm text-gray-500 dark:text-gray-400 mb-1 block">Date</label>
+					<div class="flex items-center gap-2">
+						<Calendar size={20} class="text-gray-400 dark:text-gray-500" />
+						<input
+							id="date-input"
+							type="date"
+							value={formatDateForInput(editableDate)}
+							onchange={handleDateChange}
+							max={formatDateForInput(new Date())}
+							class="flex-1 bg-transparent text-text dark:text-gray-100 font-medium border-none outline-none focus:ring-0 p-0"
+						/>
+					</div>
+					<p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+						{format(editableDate, 'EEEE, d MMMM yyyy', { locale: idLocale })}
+					</p>
 				</div>
 			</div>
 
@@ -228,6 +364,17 @@
 
 			<!-- Action buttons -->
 			<div class="flex gap-3">
+				{#if isEditMode}
+					<!-- Delete button (only in edit mode) -->
+					<button
+						type="button"
+						onclick={handleDeleteClick}
+						class="py-3 px-4 rounded-lg border border-danger text-danger font-medium hover:bg-danger/10 transition-colors"
+						aria-label="Delete transaction"
+					>
+						<Trash2 size={20} />
+					</button>
+				{/if}
 				<button
 					type="button"
 					onclick={handleCancel}
@@ -238,7 +385,7 @@
 				<button
 					type="button"
 					onclick={handleConfirm}
-					disabled={isSaving}
+					disabled={isSaving || editableAmount <= 0 || !editableDescription.trim()}
 					class="flex-1 py-3 px-4 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 				>
 					{isSaving ? 'Saving...' : isEditMode ? 'Save' : 'Confirm'}
@@ -246,6 +393,46 @@
 			</div>
 		</div>
 	</div>
+
+	<!-- Delete Confirmation Dialog (within modal) -->
+	{#if showDeleteConfirm}
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<div
+			class="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4"
+			onclick={cancelDelete}
+			role="button"
+			tabindex="-1"
+		>
+			<div
+				class="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-sm shadow-xl"
+				onclick={(e) => e.stopPropagation()}
+				role="dialog"
+				tabindex="-1"
+			>
+				<h3 class="text-lg font-semibold text-text dark:text-gray-100 mb-2">Delete Transaction?</h3>
+				<p class="text-gray-500 dark:text-gray-400 text-sm mb-6">
+					Are you sure you want to delete "{editableDescription}"? This action cannot be undone.
+				</p>
+				<div class="flex gap-3">
+					<button
+						type="button"
+						onclick={cancelDelete}
+						class="flex-1 py-2.5 px-4 rounded-lg border border-border dark:border-gray-600 text-text dark:text-gray-100 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+					>
+						Cancel
+					</button>
+					<button
+						type="button"
+						onclick={confirmDelete}
+						disabled={isDeleting}
+						class="flex-1 py-2.5 px-4 rounded-lg bg-danger text-white font-medium hover:bg-danger/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+					>
+						{isDeleting ? 'Deleting...' : 'Delete'}
+					</button>
+				</div>
+			</div>
+		</div>
+	{/if}
 {/if}
 
 <style>

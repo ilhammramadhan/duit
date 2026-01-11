@@ -120,6 +120,12 @@
 		editingTransaction = null;
 	}
 
+	function handleDelete() {
+		// Transaction was deleted from the modal
+		isEditMode = false;
+		editingTransaction = null;
+	}
+
 	// Swipe handlers
 	function handleTouchStart(event: TouchEvent, transaction: Transaction) {
 		swipeStartX = event.touches[0].clientX;
@@ -294,6 +300,7 @@
 	{editingTransaction}
 	on:confirm={handleConfirm}
 	on:cancel={handleCancel}
+	on:delete={handleDelete}
 	on:budgetWarning={handleBudgetWarning}
 />
 
