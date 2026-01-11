@@ -546,3 +546,26 @@ Iteration: 23
   - Use bulkAdd/bulkPut for efficient batch database operations
   - Show confirmation dialog for destructive operations (data replacement)
 ---
+
+## 2026-01-11 - US-024
+Iteration: 24
+- Implemented AI Keywords page at /settings/keywords
+- Lists all categoryMappings entries from IndexedDB using Dexie liveQuery
+- Each row displays: keyword text, usage count ("Used X times"), and CategoryPill component
+- List sorted by count descending (most frequently used first)
+- Tap category pill to edit: shows dropdown with all 7 categories
+- Category change handled by updateCategoryMapping() from db
+- Swipe left to delete with confirmation dialog
+- Delete handled by deleteCategoryMapping() from db
+- Toast notifications for successful category updates and deletions
+- Info card at top explains the learned keywords feature
+- Empty state shown when no keywords learned yet
+- Typecheck passes (0 errors, 3 warnings - all handled with svelte-ignore), build passes, all 107 tests pass
+- Files changed: src/routes/settings/keywords/+page.svelte
+- **Learnings for future iterations:**
+  - Use db.categoryMappings.orderBy('count').reverse() for sorted queries
+  - updateCategoryMapping(keyword, newCategory) updates existing mapping
+  - deleteCategoryMapping(keyword) removes a mapping
+  - CategoryPill accepts category prop and displays with correct colors
+  - Use Record<string, number> for swipe state tracking across multiple list items
+---

@@ -426,8 +426,8 @@
         "Verify in browser (build passes, visual check)"
       ],
       "priority": 24,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "AI Keywords page at /settings/keywords displays all categoryMappings from IndexedDB using Dexie liveQuery for reactive updates. Each row shows keyword, usage count, and CategoryPill with dropdown for category editing. List sorted by count descending (most used first). Swipe left to delete with confirmation dialog. Toast notifications for successful edits/deletes. Typecheck and build pass."
     },
     {
       "id": "US-025",
