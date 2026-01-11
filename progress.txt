@@ -640,3 +640,32 @@ Iteration: 26
   - viewport-fit=cover helps with notched device displays
   - icons purpose: "any maskable" allows icon to be masked on different platforms
 ---
+
+## 2026-01-11 - US-027
+Iteration: 27
+- Implemented service worker for offline PWA functionality
+- Installed @vite-pwa/sveltekit and vite-plugin-pwa packages
+- Configured SvelteKitPWA plugin in vite.config.ts with:
+  - registerType: 'autoUpdate' for automatic service worker updates
+  - devOptions: enabled for development testing
+  - manifest: false to use existing static/manifest.json
+- Precache strategy configured for app shell:
+  - globPatterns: '**/*.{js,css,html,ico,png,svg,woff,woff2}'
+  - Caches 55 entries (~417KB) for offline access
+- Runtime caching strategies configured:
+  - Google Fonts (fonts.googleapis.com): CacheFirst, 1 year expiration
+  - Google Font files (fonts.gstatic.com): CacheFirst, 1 year expiration
+  - Gemini API (generativelanguage.googleapis.com): NetworkOnly (app handles fallback)
+- Gemini API already handles offline gracefully:
+  - categorizeWithGemini() returns 'other' on network error
+  - generateInsight() returns 'Tips tidak tersedia saat ini' on network error
+- IndexedDB operations work offline by design (local storage)
+- Typecheck passes (0 errors, 3 warnings), build passes, all 107 tests pass
+- Files changed: package.json, package-lock.json, vite.config.ts
+- **Learnings for future iterations:**
+  - Use @vite-pwa/sveltekit for SvelteKit PWA integration (SvelteKitPWA plugin)
+  - Set manifest: false to use existing static/manifest.json instead of generating
+  - Use NetworkOnly for external APIs and handle fallback in app code
+  - CacheFirst strategy with long expiration is ideal for fonts and static assets
+  - Service worker is generated at .svelte-kit/output/server/sw.js during build
+---
