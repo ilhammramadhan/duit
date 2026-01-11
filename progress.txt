@@ -21,6 +21,7 @@
 - Category names: Use `getCategoryDisplayName(category)` from `$lib/stores/categoryNames` for customized display names
 - Theme: Use `initializeTheme()` from `$lib/stores/theme` in root layout to apply saved theme on load
 - Dark mode: Add `dark:` prefix to Tailwind classes for dark mode styling (e.g., `dark:bg-gray-800`)
+- Toast notifications: Use `showSuccess()`, `showWarning()`, `showError()`, `showInfo()` from `$lib/stores/toast` for programmatic toasts
 
 ---
 
@@ -701,4 +702,34 @@ Iteration: 28
   - Loader2 icon from lucide-svelte with animate-spin for loading spinners
   - Reset loading state when reactive dependencies change (e.g., selectedDate in Monthly page)
   - Fixed overlay with z-50 and bg-black/30 for modal-style loading indicators
+---
+
+## 2026-01-11 - US-029
+Iteration: 29
+- Implemented toast notification system with global availability
+- Created toast store in src/lib/stores/toast.ts:
+  - ToastVariant type: 'success' | 'warning' | 'error' | 'info'
+  - Toast interface: id, message, variant, duration
+  - addToast() function adds toast with auto-generated ID
+  - dismissToast(id) removes specific toast
+  - dismissAllToasts() clears all toasts
+  - subscribeToasts() for reactive updates in components
+  - Convenience functions: showSuccess, showWarning, showError, showInfo
+  - Default auto-dismiss duration: 4 seconds (4000ms)
+- Created Toast.svelte component in src/lib/components/:
+  - Displays variant-specific icons: CheckCircle (success), AlertTriangle (warning), AlertCircle (error), Info (info)
+  - Variant-specific colors: green (success), amber (warning), red (error), blue (info)
+  - Manual dismiss via X button
+  - Multiple toasts stack vertically with gap-2
+  - Positioned at top of screen with safe area padding using env(safe-area-inset-top)
+  - Slide-down animation for toast appearance
+- Added Toast component to root +layout.svelte for global availability
+- Typecheck passes (0 errors, 3 warnings), build passes, all 107 tests pass
+- Files changed: src/lib/stores/toast.ts (new), src/lib/components/Toast.svelte (new), src/routes/+layout.svelte
+- **Learnings for future iterations:**
+  - Use subscribeToasts() pattern for reactive toast updates in Svelte 5 components
+  - env(safe-area-inset-top) provides proper padding for notched devices
+  - pointer-events-none on container with pointer-events-auto on toasts allows clicks to pass through empty space
+  - Generate unique IDs with Date.now() + random string for toast identification
+  - Toast store is separate from component to allow programmatic triggering from any file
 ---
