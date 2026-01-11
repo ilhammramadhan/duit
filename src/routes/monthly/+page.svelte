@@ -1,6 +1,7 @@
 <script lang="ts">
 	import MonthSelector from '$lib/components/MonthSelector.svelte';
 	import MonthlySummary from '$lib/components/MonthlySummary.svelte';
+	import CategoryBreakdown from '$lib/components/CategoryBreakdown.svelte';
 	import { startOfMonth } from 'date-fns';
 
 	// Selected month state - defaults to current month
@@ -18,8 +19,6 @@
 	<!-- Income vs Expenses Summary -->
 	<MonthlySummary {selectedDate} />
 
-	<!-- Placeholder for other monthly components -->
-	<div class="bg-white rounded-xl p-4 shadow-sm border border-border">
-		<p class="text-gray-500">Your monthly spending breakdown will appear here.</p>
-	</div>
+	<!-- Category Breakdown -->
+	<CategoryBreakdown {selectedDate} />
 </div>
