@@ -7,6 +7,17 @@
 - Svelte 5 runes mode uses `$props()` instead of `export let`
 - Custom colors defined both in `@theme` (for Tailwind classes) and `:root` (for CSS variables)
 - Database: Dexie.js v4 in `src/lib/db/index.ts` with EntityTable types and CRUD functions exported
+- Icons: Use lucide-svelte for icons (Home, Calendar, Settings, etc.)
+- Routing: Use `import { page } from '$app/state'` and `page.url.pathname` for active route detection
+- Testing: Vitest configured with `defineConfig` from 'vitest/config' (not 'vite') to avoid typecheck errors
+- Services: Place service modules in `src/lib/services/` (e.g., parser.ts, categorizer.ts)
+- Categorizer: Import `categorize` (async) or `categorizeFromDefaults` (sync) from `$lib/services/categorizer`
+- Gemini API: Use `categorizeWithGemini()` for AI categorization, `categorizeWithFallback()` for full chain with local + AI
+- Environment vars: Use `import.meta.env.VITE_*` for client-side env vars in SvelteKit
+- Tests: Use `globalThis.fetch` (not `global.fetch`) for mocking fetch in tests to avoid TS errors
+- Reactive queries: Use `liveQuery()` from 'dexie' with `$effect()` to auto-update UI when IndexedDB data changes
+- Date formatting: Use `date-fns` with `import { id as idLocale } from 'date-fns/locale'` for Indonesian locale
+- Derived values: Use `$derived()` for computed values that depend on reactive props to avoid Svelte warnings
 
 ---
 
@@ -41,5 +52,181 @@ Iteration: 2
   - Use `++id` in schema for auto-increment primary keys
   - The `add()` method can return `number | undefined` so type assertion may be needed
   - Use `.orderBy().reverse()` for descending sort, `.limit()` for pagination
+---
+
+## 2026-01-11 - US-003
+Iteration: 3
+- Installed lucide-svelte for icon components
+- Created BottomNav.svelte with Home, Calendar, Settings icons
+- Bottom nav fixed at screen bottom with 44x44px touch targets
+- Active tab highlighted with primary color (#2563EB) using reactive pathname check
+- Updated +layout.svelte to wrap content with bottom padding (pb-16) for nav space
+- Created /monthly and /settings route pages as placeholders
+- Navigation works via SvelteKit routing (/, /monthly, /settings)
+- Build passes, typecheck passes (0 errors, 0 warnings)
+- Files changed: package.json, package-lock.json, src/lib/components/BottomNav.svelte, src/routes/+layout.svelte, src/routes/+page.svelte, src/routes/monthly/+page.svelte, src/routes/settings/+page.svelte
+- **Learnings for future iterations:**
+  - Use `import { page } from '$app/state'` for accessing current route in Svelte 5
+  - Use `page.url.pathname` to check active route
+  - lucide-svelte icons accept `size` and `strokeWidth` props for customization
+  - For sub-routes, check with `pathname.startsWith()` for nested routes like /settings/*
+---
+
+## 2026-01-11 - US-004
+Iteration: 4
+- Created QuickInput.svelte component in src/lib/components/
+- Fixed position at bottom-16 (above the bottom nav)
+- Placeholder text 'bakso 15rb...' for Indonesian expense entry
+- Submit via Enter key or tap submit button (Send icon from lucide-svelte)
+- Input clears after successful submission with focus retained
+- Min height 44px, full width with padding for touch-friendly input
+- Integrated into Home page with event dispatcher for submit handling
+- Typecheck and build pass (0 errors, 0 warnings)
+- Files changed: src/lib/components/QuickInput.svelte (new), src/routes/+page.svelte
+- **Learnings for future iterations:**
+  - Use `createEventDispatcher` from 'svelte' for component events in Svelte 5
+  - `$state()` for reactive local state, bind:value for two-way binding
+  - Fixed positioning with `bottom-16` places element above the 64px (h-16) nav bar
+  - Home page uses `pb-20` to account for both nav (h-16) and input bar space
+---
+
+## 2026-01-11 - US-005
+Iteration: 5
+- Created parser service in src/lib/services/parser.ts
+- Implemented parseAmount() function for Indonesian currency formats:
+  - rb/ribu/k suffixes for thousands (15rb -> 15000)
+  - jt/juta suffixes for millions (1.5jt -> 1500000)
+  - Thousand separators (15.000, 15,000 -> 15000)
+  - Decimal support with comma or period (1,5rb -> 1500)
+- Implemented parseInput() function to extract description and amount from mixed strings
+  - "bakso 15rb" -> { description: "bakso", amount: 15000 }
+  - Returns null for unparseable input or missing description
+- Added vitest for unit testing (49 tests covering all formats)
+- Configured vite.config.ts with vitest/config defineConfig
+- Added test and test:run npm scripts to package.json
+- Typecheck passes (0 errors, 0 warnings)
+- All tests pass
+- Files changed: src/lib/services/parser.ts (new), src/lib/services/parser.test.ts (new), package.json, package-lock.json, vite.config.ts
+- **Learnings for future iterations:**
+  - Import `defineConfig` from 'vitest/config' (not 'vite') to include test property in config
+  - Use regex patterns for parsing Indonesian currency formats
+  - Amount patterns: /(\d+)([.,](\d+))?\s*(rb|ribu|k)$/i for thousands
+  - Test file naming: *.test.ts in same directory as source file
+---
+
+## 2026-01-11 - US-006
+Iteration: 6
+- Created categorizer service in src/lib/services/categorizer.ts
+- Default keyword mappings (DEFAULT_KEYWORDS) for 6 expense categories + income:
+  - food: bakso, mie, nasi, kopi, gofood, grabfood, makan, ayam, sate, etc.
+  - transport: grab, gojek, bensin, parkir, tol, ojol, taxi, etc.
+  - bills: listrik, pln, wifi, pulsa, sewa, kos, pdam, etc.
+  - shopping: shopee, tokopedia, baju, indomaret, alfamart, etc.
+  - entertainment: netflix, spotify, bioskop, game, cinema, etc.
+  - income: gaji, salary, freelance, bonus, thr, dividen, etc.
+- Implemented categorize() async function with priority:
+  1. Exact match in categoryMappings table (user-learned)
+  2. Exact match in DEFAULT_KEYWORDS
+  3. Partial match (word contains keyword)
+  4. Fuzzy match using Levenshtein distance (threshold 0.7)
+- Implemented categorizeFromDefaults() sync function for quick lookups
+- Levenshtein distance algorithm for string similarity calculation
+- 40 unit tests covering all scenarios including typos
+- Typecheck passes, all 89 tests pass (49 parser + 40 categorizer)
+- Files changed: src/lib/services/categorizer.ts (new), src/lib/services/categorizer.test.ts (new)
+- **Learnings for future iterations:**
+  - Use Levenshtein distance for fuzzy string matching
+  - stringSimilarity = 1 - (distance / maxLength) gives 0-1 score
+  - Threshold of 0.7 works well for typos like 'bkso' -> 'bakso'
+  - Mock Dexie database functions with vi.mock('$lib/db', ...)
+  - Split description into words and check each against keywords
+---
+
+## 2026-01-11 - US-007
+Iteration: 7
+- Created Gemini API service in src/lib/services/gemini.ts
+- API key read from VITE_GEMINI_API_KEY environment variable via import.meta.env
+- Uses Gemini 1.5 Flash model for fast categorization
+- Prompt instructs AI to return single category: food, transport, bills, shopping, entertainment, income, other
+- Fallback to 'other' on any error:
+  - Missing API key
+  - API error responses (401, 500, etc.)
+  - Network errors (offline)
+  - Empty/invalid responses
+- Successful AI categorizations saved to categoryMappings table via setCategoryMapping()
+- Added categorizeWithFallback() to categorizer.ts for integrated local + AI categorization
+- 18 unit tests for Gemini service, all 107 tests pass (49 parser + 40 categorizer + 18 gemini)
+- Typecheck and build pass
+- Files changed: src/lib/services/gemini.ts (new), src/lib/services/gemini.test.ts (new), src/lib/services/categorizer.ts
+- **Learnings for future iterations:**
+  - Use `import.meta.env.VITE_*` for client-side env vars in SvelteKit
+  - Use `globalThis.fetch` instead of `global.fetch` in tests for TypeScript compatibility
+  - Gemini API endpoint: `generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`
+  - Use low temperature (0.1) and low maxOutputTokens (20) for deterministic category responses
+  - Always handle API errors gracefully - return fallback value, don't crash
+---
+
+## 2026-01-11 - US-008
+Iteration: 8
+- Created ConfirmationModal.svelte in src/lib/components/
+- Modal slides up from bottom with backdrop overlay
+- Shows parsed description (capitalized) and amount formatted as Indonesian Rupiah (Rp)
+- Category pills for all 7 categories displayed horizontally with wrap
+- Selected category highlighted with primary color (#2563EB)
+- Toggle button for expense/income type with visual feedback (red for expense, green for income)
+- Auto-sets type to income when income category selected
+- Confirm button saves transaction to IndexedDB via addTransaction()
+- Cancel button dismisses modal without saving
+- Backdrop click and Escape key also dismiss modal
+- Integrated with Home page: QuickInput submit -> parseInput -> categorizeWithFallback -> show modal
+- Typecheck passes (0 errors, 1 warning for initial state capture which is intentional)
+- Build passes, all 107 tests pass
+- Files changed: src/lib/components/ConfirmationModal.svelte (new), src/routes/+page.svelte
+- **Learnings for future iterations:**
+  - Use `$bindable()` for two-way prop binding in Svelte 5
+  - Use `$effect()` to react to prop changes and update local state
+  - Use `<!-- svelte-ignore a11y_click_events_have_key_events -->` for backdrop click handlers
+  - Format Indonesian Rupiah with `toLocaleString('id-ID')` for proper thousand separators
+  - Modal components work well as bottom sheets on mobile (rounded-t-2xl, animate slide-up)
+---
+
+## 2026-01-11 - US-009
+Iteration: 9
+- Created SpendingSummary.svelte component in src/lib/components/
+- Displays today's and this week's spending at top of Home page
+- Uses Dexie `liveQuery` for reactive real-time updates when transactions change
+- Week starts on Monday, ends Sunday (ISO week standard)
+- Only counts expenses (filters by type === 'expense')
+- Indonesian Rupiah formatting with `toLocaleString('id-ID')` for thousand dot separators
+- Integrated into Home page between header and transaction list placeholder
+- Typecheck passes (0 errors, 1 existing warning)
+- Build passes, all 107 tests pass
+- Files changed: src/lib/components/SpendingSummary.svelte (new), src/routes/+page.svelte
+- **Learnings for future iterations:**
+  - Use `liveQuery` from 'dexie' for reactive queries that auto-update when data changes
+  - Use `$effect()` with `$liveQueryResult` syntax to subscribe to Dexie observable queries
+  - For week calculation: `dayOfWeek === 0 ? 6 : dayOfWeek - 1` converts Sunday=0 to Monday-based index
+  - Date range queries: use `.where('date').between(start, end, true, true)` for inclusive bounds
+---
+
+## 2026-01-11 - US-010
+Iteration: 10
+- Created CategoryPill.svelte sub-component with category-specific colors
+  - Each category has distinct background/text color combination
+  - Supports 'sm' and 'md' sizes
+- Created TransactionCard.svelte component for displaying transactions
+  - Lucide icons for each category: Utensils (food), Car (transport), Receipt (bills), ShoppingBag (shopping), Film (entertainment), Wallet (income), HelpCircle (other)
+  - Relative time display using date-fns with Indonesian locale (id)
+  - Amount formatting: income shows green with +Rp prefix, expense shows neutral text with -Rp prefix
+  - Category icon displayed in colored circular background
+- Installed date-fns for relative time formatting
+- Typecheck passes (0 errors), build passes, all 107 tests pass
+- Files changed: src/lib/components/CategoryPill.svelte (new), src/lib/components/TransactionCard.svelte (new), package.json, package-lock.json
+- **Learnings for future iterations:**
+  - Import date-fns locale separately: `import { id as idLocale } from 'date-fns/locale'`
+  - Use `formatDistanceToNow(date, { addSuffix: true, locale: idLocale })` for localized relative time
+  - Use `$derived()` instead of `const` for computed values that depend on props to avoid svelte warnings
+  - Category icons mapping: `Record<Category, typeof Utensils>` for type-safe icon components
+  - Use `truncate` class for overflow text in card layouts
 ---
 

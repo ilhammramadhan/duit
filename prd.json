@@ -50,8 +50,8 @@
         "Verify in browser (build passes, visual check)"
       ],
       "priority": 3,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Installed lucide-svelte, created BottomNav.svelte with Home/Calendar/Settings icons, 44x44px touch targets, primary color active state. Routes created for /, /monthly, /settings. Layout wraps all pages with bottom padding. Build and typecheck pass."
     },
     {
       "id": "US-004",
@@ -68,8 +68,8 @@
         "Verify in browser (build passes, visual check)"
       ],
       "priority": 4,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "QuickInput.svelte created with Send icon, 44px min-height, full width. Fixed position above nav (bottom-16). Submit on Enter or button tap, clears input after submission. Typecheck and build pass."
     },
     {
       "id": "US-005",
@@ -86,8 +86,8 @@
         "Typecheck passes"
       ],
       "priority": 5,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Parser service created with parseAmount() and parseInput() functions. Handles rb/ribu/k (thousands), jt/juta (millions), and thousand separator formats (15.000, 15,000). All 49 unit tests pass. Vitest added for testing."
     },
     {
       "id": "US-006",
@@ -102,8 +102,8 @@
         "Typecheck passes"
       ],
       "priority": 6,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Categorizer service created with DEFAULT_KEYWORDS for all categories. Uses Levenshtein distance for fuzzy matching with 0.7 similarity threshold. Exact match lookup in categoryMappings table first, then defaults, then fuzzy matching. 40 unit tests pass."
     },
     {
       "id": "US-007",
@@ -119,8 +119,8 @@
         "Typecheck passes"
       ],
       "priority": 7,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Gemini API service created with categorizeWithGemini() function. Uses VITE_GEMINI_API_KEY env var. Falls back to 'other' on errors or no API key. Saves successful categorizations to categoryMappings table. 18 unit tests pass. Added categorizeWithFallback() to categorizer.ts for integrated usage."
     },
     {
       "id": "US-008",
@@ -138,8 +138,8 @@
         "Verify in browser (build passes, visual check)"
       ],
       "priority": 8,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "ConfirmationModal.svelte created with category pills, expense/income toggle, Rupiah formatting. Integrated with Home page via QuickInput submit handler. Uses parser and categorizer services. Typecheck and build pass."
     },
     {
       "id": "US-009",
@@ -156,8 +156,8 @@
         "Verify in browser (build passes, visual check)"
       ],
       "priority": 9,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "SpendingSummary.svelte created with liveQuery for reactive updates. Uses Dexie liveQuery to subscribe to today's and week's transactions. Week starts Monday, ends Sunday. Only counts expenses. Rupiah formatting with toLocaleString('id-ID'). Typecheck and build pass."
     },
     {
       "id": "US-010",
@@ -174,8 +174,8 @@
         "Verify in browser (build passes, visual check)"
       ],
       "priority": 10,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Created TransactionCard.svelte with Lucide icons (Utensils, Car, Receipt, ShoppingBag, Film, Wallet, HelpCircle) for each category. CategoryPill.svelte sub-component with colored backgrounds. date-fns for relative time with Indonesian locale. Income in green, expense in neutral text. Typecheck and build pass."
     },
     {
       "id": "US-011",

@@ -25,6 +25,7 @@
   },
   "type": "module",
   "dependencies": {
+    "date-fns": "^4.1.0",
     "dexie": "^4.2.1",
     "lucide-svelte": "^0.562.0"
   }
