@@ -733,3 +733,29 @@ Iteration: 29
   - Generate unique IDs with Date.now() + random string for toast identification
   - Toast store is separate from component to allow programmatic triggering from any file
 ---
+
+## 2026-01-11 - US-030
+Iteration: 30
+- Implemented full transaction edit functionality in ConfirmationModal
+- Made description field editable with inline text input
+- Made amount field editable with Rupiah formatting (parses thousand separators)
+- Added date picker with native HTML date input
+  - Calendar icon from lucide-svelte
+  - Formatted date display in Indonesian locale below input (e.g., "Sabtu, 11 Januari 2026")
+  - Max date set to today (cannot select future dates)
+- Added delete button (Trash2 icon) in edit mode
+  - Shows in action buttons row alongside Cancel and Save
+  - Opens confirmation dialog as overlay within modal (z-[60])
+  - Confirmation dialog shows transaction description and warning
+- Updated Home and Monthly pages to handle on:delete event from modal
+- Form validation: save button disabled when amount is 0 or description is empty
+- Uses $effect() to populate form fields when modal opens or editingTransaction changes
+- Typecheck passes (0 errors, 3 existing warnings), build passes, all 107 tests pass
+- Files changed: src/lib/components/ConfirmationModal.svelte, src/routes/+page.svelte, src/routes/monthly/+page.svelte
+- **Learnings for future iterations:**
+  - Use `new Date(value + 'T12:00:00')` when parsing date input to avoid timezone issues
+  - formatDateForInput() converts Date to yyyy-MM-dd format for HTML date input value
+  - For nested modals/dialogs, use higher z-index (z-[60]) than parent modal (z-50)
+  - Parse numeric input by removing non-digits: `value.replace(/\D/g, '')`
+  - Use inputmode="numeric" for better mobile keyboard experience on text inputs
+---
