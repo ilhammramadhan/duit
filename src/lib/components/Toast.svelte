@@ -5,7 +5,7 @@
 		dismissToast,
 		type Toast as ToastType,
 		type ToastVariant
-	} from '$lib/stores/toast';
+	} from '$lib/stores/toast.svelte';
 
 	// Local state for toasts
 	let toasts = $state<ToastType[]>([]);
