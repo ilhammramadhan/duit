@@ -513,3 +513,36 @@ Iteration: 22
   - BackupData interface with version field enables future schema migrations
   - format(date, 'yyyy-MM-dd') from date-fns for consistent filename date formatting
 ---
+
+## 2026-01-11 - US-023
+Iteration: 23
+- Implemented data import functionality at /settings/import
+- Added validateBackupData() function in src/lib/db/index.ts:
+  - Validates JSON structure matches expected schema
+  - Checks version field, data field presence
+  - Validates each transaction (amount, description, category, type)
+  - Validates each budget (category, limit)
+  - Validates each categoryMapping (keyword, category, count)
+  - Returns ImportValidationResult with valid boolean, error message, data, and stats
+- Added importAllData() function in src/lib/db/index.ts:
+  - Clears all existing data (transactions, budgets, categoryMappings)
+  - Converts date strings back to Date objects for transactions
+  - Uses bulkAdd/bulkPut for efficient batch insertion
+- Import page features:
+  - File picker accepting .json files only
+  - Validation display: shows file name, validation status, and data stats
+  - Green checkmark for valid files, red alert for invalid files
+  - Confirmation dialog with warning about permanent data replacement
+  - Loading spinner during import operation
+  - Success state with imported data stats
+  - Error state with error message display
+- Warning card about data replacement prominently displayed
+- Typecheck passes (0 errors, 1 existing a11y warning), build passes, all 107 tests pass
+- Files changed: src/lib/db/index.ts, src/routes/settings/import/+page.svelte
+- **Learnings for future iterations:**
+  - Use file.text() + JSON.parse() for reading JSON files from file input
+  - Validate backup data schema before importing to prevent data corruption
+  - Convert date strings back to Date objects when importing JSON
+  - Use bulkAdd/bulkPut for efficient batch database operations
+  - Show confirmation dialog for destructive operations (data replacement)
+---

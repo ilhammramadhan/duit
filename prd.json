@@ -408,8 +408,8 @@
         "Verify in browser (build passes, visual check)"
       ],
       "priority": 23,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Added validateBackupData() function in db/index.ts for schema validation. Added importAllData() function to clear and import data with date conversion. Import page at /settings/import with file picker (.json only), validation display, confirmation dialog warning about data replacement, success/error states, and import stats. Typecheck and build pass."
     },
     {
       "id": "US-024",
