@@ -494,8 +494,8 @@
         "Verify in browser (build passes, visual check)"
       ],
       "priority": 28,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Created skeleton loader components (Skeleton.svelte, TransactionListSkeleton.svelte, BudgetBarSkeleton.svelte). Added loading states to Home page (transaction list skeleton, AI categorization spinner overlay) and Monthly page (transaction list skeleton). BudgetBar shows skeleton during load. AIInsightCard already had skeleton (US-018). Empty states maintained for transactions and monthly. Typecheck and build pass."
     },
     {
       "id": "US-029",

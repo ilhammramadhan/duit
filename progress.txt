@@ -669,3 +669,36 @@ Iteration: 27
   - CacheFirst strategy with long expiration is ideal for fonts and static assets
   - Service worker is generated at .svelte-kit/output/server/sw.js during build
 ---
+
+## 2026-01-11 - US-028
+Iteration: 28
+- Implemented loading and empty states for better UX feedback
+- Created skeleton loader components:
+  - Skeleton.svelte: Base reusable skeleton component with variant support (text, circular, rectangular)
+  - TransactionListSkeleton.svelte: Skeleton for transaction lists with configurable count
+  - BudgetBarSkeleton.svelte: Skeleton for budget progress bars
+- Added loading states to Home page:
+  - isLoadingTransactions state to track transaction list loading
+  - TransactionListSkeleton shown while transactions load
+  - isCategorizingAI state for AI categorization process
+  - Loader2 spinner overlay shown during AI categorization
+- Added loading states to Monthly page:
+  - isLoadingTransactions state resets when month changes
+  - TransactionListSkeleton shown during loading
+- Updated BudgetBar component:
+  - Added isLoading state set to false when data loads
+  - Shows BudgetBarSkeleton during initial load
+- AIInsightCard already has loading skeleton (implemented in US-018)
+- Empty state messages already present:
+  - Home: "No transactions yet" with hint to add expense
+  - Monthly: "No transactions this month" with hint to add on Home tab
+- Added dark mode classes to new loading/empty state components
+- Typecheck passes (0 errors, 3 warnings), build passes, all 107 tests pass
+- Files changed: src/lib/components/Skeleton.svelte (new), src/lib/components/TransactionListSkeleton.svelte (new), src/lib/components/BudgetBarSkeleton.svelte (new), src/lib/components/BudgetBar.svelte, src/routes/+page.svelte, src/routes/monthly/+page.svelte
+- **Learnings for future iterations:**
+  - Use $state(true) for initial loading states, set to false when data loads
+  - Skeleton components use animate-pulse class for pulsing effect
+  - Loader2 icon from lucide-svelte with animate-spin for loading spinners
+  - Reset loading state when reactive dependencies change (e.g., selectedDate in Monthly page)
+  - Fixed overlay with z-50 and bg-black/30 for modal-style loading indicators
+---
