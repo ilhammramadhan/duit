@@ -389,8 +389,8 @@
         "Verify in browser (build passes, visual check)"
       ],
       "priority": 22,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Added exportAllData() function in db/index.ts with BackupData interface including version field. Export page at /settings/export with download as duit-backup-YYYY-MM-DD.json. Shows export stats after successful export. Visual success confirmation with checkmark icon. Typecheck and build pass."
     },
     {
       "id": "US-023",
