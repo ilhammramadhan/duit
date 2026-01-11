@@ -1,5 +1,6 @@
 <script lang="ts">
 	import MonthSelector from '$lib/components/MonthSelector.svelte';
+	import MonthlySummary from '$lib/components/MonthlySummary.svelte';
 	import { startOfMonth } from 'date-fns';
 
 	// Selected month state - defaults to current month
@@ -13,6 +14,9 @@
 <div class="p-4 pb-20 space-y-4">
 	<!-- Month Selector -->
 	<MonthSelector {selectedDate} onMonthChange={handleMonthChange} />
+
+	<!-- Income vs Expenses Summary -->
+	<MonthlySummary {selectedDate} />
 
 	<!-- Placeholder for other monthly components -->
 	<div class="bg-white rounded-xl p-4 shadow-sm border border-border">
