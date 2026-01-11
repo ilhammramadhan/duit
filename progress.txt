@@ -601,3 +601,42 @@ Iteration: 25
   - Use media query listener for system theme changes: window.matchMedia('(prefers-color-scheme: dark)')
   - Check prefers-reduced-motion to disable theme transitions for accessibility
 ---
+
+## 2026-01-11 - US-026
+Iteration: 26
+- Configured PWA manifest for app installability
+- Created manifest.json in static/ folder with:
+  - name: "Duit - Financial Tracker"
+  - short_name: "Duit"
+  - theme_color: #2563EB (primary blue)
+  - background_color: #F8FAFC
+  - display: standalone
+  - orientation: portrait
+  - icons: 192x192 and 512x512 PNG
+- Created icon generation script in scripts/generate-icons.js:
+  - Pure Node.js PNG generation using zlib compression
+  - Generates solid color icons matching primary theme color
+  - Creates favicon.png in static/
+- Updated src/app.html with PWA meta tags:
+  - theme-color meta tag
+  - mobile-web-app-capable meta tag
+  - application-name meta tag
+  - description meta tag
+  - manifest link
+- Added iOS-specific PWA meta tags:
+  - apple-mobile-web-app-capable
+  - apple-mobile-web-app-status-bar-style
+  - apple-mobile-web-app-title
+  - apple-touch-icon link
+- Changed lang="en" to lang="id" for Indonesian locale
+- Added viewport-fit=cover for notched devices
+- Typecheck passes (0 errors, 3 warnings), build passes, all 107 tests pass
+- Files changed: static/manifest.json (new), static/favicon.png (new), static/icons/icon-192x192.png (new), static/icons/icon-512x512.png (new), static/icons/*.svg (new), scripts/generate-icons.js (new), src/app.html
+- **Learnings for future iterations:**
+  - PWA manifest.json goes in static/ folder for SvelteKit
+  - Use %sveltekit.assets% prefix for asset URLs in app.html
+  - PNG generation can be done with pure Node.js using zlib deflateSync
+  - iOS requires apple-mobile-web-app-capable and apple-touch-icon for Add to Home Screen
+  - viewport-fit=cover helps with notched device displays
+  - icons purpose: "any maskable" allows icon to be masked on different platforms
+---
