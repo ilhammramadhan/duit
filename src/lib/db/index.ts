@@ -259,3 +259,42 @@ export async function checkBudgetWarning(category: Category): Promise<BudgetWarn
 
   return null;
 }
+
+// ============ Data Export/Import Operations ============
+
+/**
+ * Current backup version for compatibility
+ */
+export const BACKUP_VERSION = 1;
+
+/**
+ * Backup data structure
+ */
+export interface BackupData {
+  version: number;
+  exportedAt: string;
+  data: {
+    transactions: Transaction[];
+    budgets: Budget[];
+    categoryMappings: CategoryMapping[];
+  };
+}
+
+/**
+ * Export all data from IndexedDB as a backup object
+ */
+export async function exportAllData(): Promise<BackupData> {
+  const transactions = await db.transactions.toArray();
+  const budgets = await db.budgets.toArray();
+  const categoryMappings = await db.categoryMappings.toArray();
+
+  return {
+    version: BACKUP_VERSION,
+    exportedAt: new Date().toISOString(),
+    data: {
+      transactions,
+      budgets,
+      categoryMappings
+    }
+  };
+}
