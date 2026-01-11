@@ -18,6 +18,7 @@
 - Reactive queries: Use `liveQuery()` from 'dexie' with `$effect()` to auto-update UI when IndexedDB data changes
 - Date formatting: Use `date-fns` with `import { id as idLocale } from 'date-fns/locale'` for Indonesian locale
 - Derived values: Use `$derived()` for computed values that depend on reactive props to avoid Svelte warnings
+- Category names: Use `getCategoryDisplayName(category)` from `$lib/stores/categoryNames` for customized display names
 
 ---
 
@@ -431,5 +432,58 @@ Iteration: 19
   - Map-based grouping: iterate once, group by key, then convert to sorted array
   - endOfMonth() needs setHours(23, 59, 59, 999) for inclusive date range queries
   - Reuse TransactionCard, ConfirmationModal, swipe handlers pattern across pages for consistency
+---
+
+## 2026-01-11 - US-020
+Iteration: 20
+- Updated Settings page at /settings with grouped sections
+- Three sections with headers: Data, Categories, Appearance
+- Data section items: Budgets (existing), Export Data, Import Data
+- Categories section items: Manage Categories, AI Keywords
+- Appearance section item: Theme
+- Each item displays: Lucide icon in colored circular background, label text, description, chevron-right
+- Icons used: Wallet (budgets), Download (export), Upload (import), Tags (categories), Sparkles (keywords), Palette (theme)
+- Created placeholder sub-pages with back navigation for: export, import, categories, keywords, theme
+- All navigable items route to respective sub-pages
+- Typecheck passes (0 errors, 0 warnings), build passes
+- Files changed: src/routes/settings/+page.svelte, src/routes/settings/export/+page.svelte (new), src/routes/settings/import/+page.svelte (new), src/routes/settings/categories/+page.svelte (new), src/routes/settings/keywords/+page.svelte (new), src/routes/settings/theme/+page.svelte (new)
+- **Learnings for future iterations:**
+  - Settings page pattern: section headers (uppercase, gray, small text) with card-style grouped items
+  - Use divide-y divide-border for item separators within card groups
+  - Consistent icon sizes: 20px in 40x40px rounded-full colored background
+  - Each section gets distinct icon colors: blue (data), green (export), amber (import), purple (categories), pink (keywords), indigo (theme)
+  - Placeholder pages include ChevronLeft back button with -ml-2 offset for proper alignment
+---
+
+## 2026-01-11 - US-021
+Iteration: 21
+- Implemented category management page at /settings/categories
+- Created categoryNames store in src/lib/stores/categoryNames.ts using localStorage
+- Helper functions: getCategoryDisplayName(), setCategoryDisplayName(), getAllCategoryDisplayNames()
+- Category management page lists all 7 categories with icons and current display names
+- Each category row has Pencil edit button that opens inline text input
+- Save on Enter key or blur, cancel on Escape key
+- Toast notification shown on successful rename
+- Shows "Default: [original name]" subtitle when category has been customized
+- Cannot delete default categories, only rename
+- Updated components to use getCategoryDisplayName():
+  - CategoryPill.svelte - uses $derived(getCategoryDisplayName(category))
+  - TransactionCard.svelte - already uses CategoryPill which now shows custom names
+  - BudgetBar.svelte - displays custom category names in budget overview
+  - CategoryBreakdown.svelte - displays custom category names in spending breakdown
+  - ConfirmationModal.svelte - displays custom category names on category pills
+  - +page.svelte (Home) - budget warning toasts show custom category names
+  - +page.svelte (Monthly) - budget warning toasts show custom category names
+  - /settings/budgets - displays custom category names in budget list
+- Removed duplicate CATEGORY_LABELS constants from multiple files
+- Typecheck passes (0 errors, 1 a11y warning for autofocus), build passes, all 107 tests pass
+- Files changed: src/lib/stores/categoryNames.ts (new), src/lib/components/CategoryPill.svelte, src/lib/components/BudgetBar.svelte, src/lib/components/CategoryBreakdown.svelte, src/lib/components/ConfirmationModal.svelte, src/routes/+page.svelte, src/routes/monthly/+page.svelte, src/routes/settings/budgets/+page.svelte, src/routes/settings/categories/+page.svelte
+- **Learnings for future iterations:**
+  - Create centralized stores for app-wide settings like category names
+  - Use localStorage for simple user preferences that need to persist
+  - getCategoryDisplayName(category) returns custom name if set, otherwise default
+  - Use $derived() to make component values reactive to store changes
+  - Svelte a11y_autofocus warning is acceptable for edit mode inputs
+  - Remove duplicate CATEGORY_LABELS when centralizing to a store
 ---
 
