@@ -1,0 +1,19 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with primary color -->
+  <rect width="512" height="512" rx="128" fill="#2563EB"/>
+
+  <!-- Wallet icon in white -->
+  <g transform="translate(80, 80)">
+    <!-- Wallet body -->
+    <rect x="48" y="96" width="256" height="192" rx="24" fill="white"/>
+
+    <!-- Wallet flap -->
+    <path d="M48 136 L48 112 C48 98.75 58.75 88 72 88 L280 88 C293.25 88 304 98.75 304 112 L304 136" stroke="white" stroke-width="12" fill="none"/>
+
+    <!-- Coin slot area -->
+    <rect x="216" y="152" width="64" height="64" rx="32" fill="#2563EB"/>
+
+    <!-- Dollar/Rupiah symbol -->
+    <text x="176" y="224" font-family="Plus Jakarta Sans, sans-serif" font-size="96" font-weight="bold" fill="#2563EB" text-anchor="middle">Rp</text>
+  </g>
+</svg>
