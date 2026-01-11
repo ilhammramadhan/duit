@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { X } from 'lucide-svelte';
 	import { createEventDispatcher } from 'svelte';
-	import { addTransaction, updateTransaction, type Category, type TransactionType, type Transaction } from '$lib/db';
+	import { addTransaction, updateTransaction, checkBudgetWarning, type Category, type TransactionType, type Transaction, type BudgetWarning } from '$lib/db';
 
 	// All available categories
 	const CATEGORIES: Category[] = ['food', 'transport', 'bills', 'shopping', 'entertainment', 'income', 'other'];
@@ -46,7 +46,7 @@
 		}
 	});
 
-	const dispatch = createEventDispatcher<{ confirm: void; cancel: void }>();
+	const dispatch = createEventDispatcher<{ confirm: void; cancel: void; budgetWarning: BudgetWarning }>();
 
 	/**
 	 * Format amount in Indonesian Rupiah format
@@ -107,6 +107,15 @@
 					date: new Date()
 				});
 			}
+
+			// Check for budget warning after saving (only for expenses)
+			if (transactionType === 'expense') {
+				const warning = await checkBudgetWarning(selectedCategory);
+				if (warning) {
+					dispatch('budgetWarning', warning);
+				}
+			}
+
 			dispatch('confirm');
 			show = false;
 		} catch (error) {

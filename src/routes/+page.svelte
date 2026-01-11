@@ -7,7 +7,8 @@
 	import TransactionCard from '$lib/components/TransactionCard.svelte';
 	import { parseInput } from '$lib/services/parser';
 	import { categorizeWithFallback } from '$lib/services/categorizer';
-	import { db, deleteTransaction, type Category, type Transaction } from '$lib/db';
+	import { db, deleteTransaction, type Category, type Transaction, type BudgetWarning } from '$lib/db';
+	import { AlertTriangle, AlertCircle, X } from 'lucide-svelte';
 
 	// Recent transactions (last 10, newest first)
 	let transactions: Transaction[] = $state([]);
@@ -47,6 +48,23 @@
 	let swipeStartX = $state(0);
 	let swipingTransactionId = $state<number | null>(null);
 	let swipeOffset = $state(0);
+
+	// Budget warning toast state
+	let showBudgetToast = $state(false);
+	let budgetToastType = $state<'warning' | 'danger'>('warning');
+	let budgetToastMessage = $state('');
+	let budgetToastTimeout: ReturnType<typeof setTimeout> | null = null;
+
+	// Category labels for toast messages
+	const CATEGORY_LABELS: Record<Category, string> = {
+		food: 'Food',
+		transport: 'Transport',
+		bills: 'Bills',
+		shopping: 'Shopping',
+		entertainment: 'Entertainment',
+		income: 'Income',
+		other: 'Other'
+	};
 
 	async function handleQuickInputSubmit(event: CustomEvent<string>) {
 		const input = event.detail;
@@ -151,6 +169,54 @@
 		showDeleteConfirm = false;
 		deletingTransaction = null;
 	}
+
+	/**
+	 * Format amount in Indonesian Rupiah format
+	 */
+	function formatRupiah(value: number): string {
+		return 'Rp ' + value.toLocaleString('id-ID');
+	}
+
+	/**
+	 * Handle budget warning from ConfirmationModal
+	 */
+	function handleBudgetWarning(event: CustomEvent<BudgetWarning>) {
+		const warning = event.detail;
+
+		// Clear any existing timeout
+		if (budgetToastTimeout) {
+			clearTimeout(budgetToastTimeout);
+		}
+
+		// Set toast type and message based on warning type
+		if (warning.type === 'exceeded') {
+			budgetToastType = 'danger';
+			budgetToastMessage = `${CATEGORY_LABELS[warning.category]} budget exceeded by ${formatRupiah(warning.exceededBy || 0)}`;
+		} else if (warning.type === 'approaching') {
+			budgetToastType = 'warning';
+			budgetToastMessage = `${CATEGORY_LABELS[warning.category]} budget at ${warning.percentage}%`;
+		} else {
+			return; // No warning needed
+		}
+
+		// Show toast
+		showBudgetToast = true;
+
+		// Auto-dismiss after 4 seconds
+		budgetToastTimeout = setTimeout(() => {
+			showBudgetToast = false;
+		}, 4000);
+	}
+
+	/**
+	 * Dismiss budget warning toast manually
+	 */
+	function dismissBudgetToast() {
+		if (budgetToastTimeout) {
+			clearTimeout(budgetToastTimeout);
+		}
+		showBudgetToast = false;
+	}
 </script>
 
 <div class="p-4 pb-20">
@@ -219,6 +285,7 @@
 	{editingTransaction}
 	on:confirm={handleConfirm}
 	on:cancel={handleCancel}
+	on:budgetWarning={handleBudgetWarning}
 />
 
 <!-- Delete Confirmation Dialog -->
@@ -259,3 +326,44 @@
 		</div>
 	</div>
 {/if}
+
+<!-- Budget Warning Toast -->
+{#if showBudgetToast}
+	<div class="fixed top-4 left-4 right-4 z-50 flex justify-center animate-slide-down">
+		<div
+			class="flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg max-w-sm w-full {budgetToastType === 'danger' ? 'bg-danger' : 'bg-warning'} text-white"
+		>
+			{#if budgetToastType === 'danger'}
+				<AlertCircle size={20} class="flex-shrink-0" />
+			{:else}
+				<AlertTriangle size={20} class="flex-shrink-0" />
+			{/if}
+			<span class="text-sm font-medium flex-1">{budgetToastMessage}</span>
+			<button
+				type="button"
+				onclick={dismissBudgetToast}
+				class="p-1 hover:bg-white/20 rounded transition-colors flex-shrink-0"
+				aria-label="Dismiss"
+			>
+				<X size={16} />
+			</button>
+		</div>
+	</div>
+{/if}
+
+<style>
+	@keyframes slide-down {
+		from {
+			transform: translateY(-100%);
+			opacity: 0;
+		}
+		to {
+			transform: translateY(0);
+			opacity: 1;
+		}
+	}
+
+	.animate-slide-down {
+		animation: slide-down 0.3s ease-out;
+	}
+</style>

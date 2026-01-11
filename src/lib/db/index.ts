@@ -198,3 +198,64 @@ export async function deleteCategoryMapping(keyword: string): Promise<void> {
 export async function updateCategoryMapping(keyword: string, category: Category): Promise<number> {
   return await db.categoryMappings.update(keyword.toLowerCase(), { category });
 }
+
+// ============ Budget Warning Utilities ============
+
+/**
+ * Budget warning result
+ */
+export interface BudgetWarning {
+  type: 'exceeded' | 'approaching' | null;
+  category: Category;
+  percentage: number;
+  exceededBy?: number;  // Amount exceeded by (only for 'exceeded' type)
+}
+
+/**
+ * Check budget status for a category and return warning if applicable
+ * @param category - The category to check
+ * @returns BudgetWarning with warning type, or null if no warning needed
+ */
+export async function checkBudgetWarning(category: Category): Promise<BudgetWarning | null> {
+  // Only expense categories have budget limits
+  if (category === 'income') return null;
+
+  // Get budget for category
+  const budget = await db.budgets.get(category);
+  if (!budget || budget.limit <= 0) return null;
+
+  // Calculate current month's spending for this category
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+  const transactions = await db.transactions
+    .where('date')
+    .between(startOfMonth, endOfMonth, true, true)
+    .toArray();
+
+  // Sum expenses for this category
+  const spent = transactions
+    .filter(t => t.type === 'expense' && t.category === category)
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const percentage = Math.round((spent / budget.limit) * 100);
+
+  // Check thresholds
+  if (percentage >= 100) {
+    return {
+      type: 'exceeded',
+      category,
+      percentage,
+      exceededBy: spent - budget.limit
+    };
+  } else if (percentage >= 80) {
+    return {
+      type: 'approaching',
+      category,
+      percentage
+    };
+  }
+
+  return null;
+}
