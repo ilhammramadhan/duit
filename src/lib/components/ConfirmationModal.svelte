@@ -154,45 +154,45 @@
 		tabindex="-1"
 	>
 		<!-- Modal -->
-		<div class="bg-white rounded-t-2xl w-full max-w-lg p-6 pb-8 animate-slide-up">
+		<div class="bg-white dark:bg-gray-800 rounded-t-2xl w-full max-w-lg p-6 pb-8 animate-slide-up">
 			<!-- Header -->
 			<div class="flex items-center justify-between mb-6">
-				<h2 class="text-lg font-semibold text-text">{isEditMode ? 'Edit Transaction' : 'Confirm Transaction'}</h2>
+				<h2 class="text-lg font-semibold text-text dark:text-gray-100">{isEditMode ? 'Edit Transaction' : 'Confirm Transaction'}</h2>
 				<button
 					type="button"
 					onclick={handleCancel}
-					class="p-2 rounded-full hover:bg-gray-100 transition-colors"
+					class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
 					aria-label="Close"
 				>
-					<X size={20} class="text-gray-500" />
+					<X size={20} class="text-gray-500 dark:text-gray-400" />
 				</button>
 			</div>
 
 			<!-- Transaction details -->
 			<div class="space-y-4 mb-6">
 				<!-- Description -->
-				<div class="bg-background rounded-lg p-4">
-					<p class="text-sm text-gray-500 mb-1">Description</p>
-					<p class="text-text font-medium capitalize">{description}</p>
+				<div class="bg-background dark:bg-gray-700 rounded-lg p-4">
+					<p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Description</p>
+					<p class="text-text dark:text-gray-100 font-medium capitalize">{description}</p>
 				</div>
 
 				<!-- Amount -->
-				<div class="bg-background rounded-lg p-4">
-					<p class="text-sm text-gray-500 mb-1">Amount</p>
-					<p class="text-2xl font-bold text-text">{formatRupiah(amount)}</p>
+				<div class="bg-background dark:bg-gray-700 rounded-lg p-4">
+					<p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Amount</p>
+					<p class="text-2xl font-bold text-text dark:text-gray-100">{formatRupiah(amount)}</p>
 				</div>
 			</div>
 
 			<!-- Type toggle -->
 			<div class="mb-6">
-				<p class="text-sm text-gray-500 mb-2">Type</p>
-				<div class="flex bg-background rounded-lg p-1">
+				<p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Type</p>
+				<div class="flex bg-background dark:bg-gray-700 rounded-lg p-1">
 					<button
 						type="button"
 						onclick={() => (transactionType = 'expense')}
 						class="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all {transactionType === 'expense'
-							? 'bg-white text-danger shadow-sm'
-							: 'text-gray-500 hover:text-text'}"
+							? 'bg-white dark:bg-gray-600 text-danger shadow-sm'
+							: 'text-gray-500 dark:text-gray-400 hover:text-text dark:hover:text-gray-200'}"
 					>
 						Expense
 					</button>
@@ -200,8 +200,8 @@
 						type="button"
 						onclick={() => (transactionType = 'income')}
 						class="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all {transactionType === 'income'
-							? 'bg-white text-success shadow-sm'
-							: 'text-gray-500 hover:text-text'}"
+							? 'bg-white dark:bg-gray-600 text-success shadow-sm'
+							: 'text-gray-500 dark:text-gray-400 hover:text-text dark:hover:text-gray-200'}"
 					>
 						Income
 					</button>
@@ -210,7 +210,7 @@
 
 			<!-- Category selection -->
 			<div class="mb-6">
-				<p class="text-sm text-gray-500 mb-2">Category</p>
+				<p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Category</p>
 				<div class="flex flex-wrap gap-2">
 					{#each CATEGORIES as category}
 						<button
@@ -218,7 +218,7 @@
 							onclick={() => selectCategory(category)}
 							class="px-4 py-2 rounded-full text-sm font-medium transition-all {selectedCategory === category
 								? 'bg-primary text-white'
-								: 'bg-background text-text hover:bg-gray-200'}"
+								: 'bg-background dark:bg-gray-700 text-text dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'}"
 						>
 							{getCategoryDisplayName(category)}
 						</button>
@@ -231,7 +231,7 @@
 				<button
 					type="button"
 					onclick={handleCancel}
-					class="flex-1 py-3 px-4 rounded-lg border border-border text-text font-medium hover:bg-gray-50 transition-colors"
+					class="flex-1 py-3 px-4 rounded-lg border border-border dark:border-gray-600 text-text dark:text-gray-100 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
 				>
 					Cancel
 				</button>

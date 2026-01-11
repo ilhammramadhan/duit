@@ -24,7 +24,7 @@
 	}
 </script>
 
-<div class="fixed bottom-16 left-0 right-0 bg-white border-t border-border px-4 py-2 z-40">
+<div class="fixed bottom-16 left-0 right-0 bg-white dark:bg-gray-800 border-t border-border dark:border-gray-700 px-4 py-2 z-40">
 	<div class="flex items-center gap-2">
 		<input
 			type="text"
@@ -32,7 +32,7 @@
 			bind:this={inputElement}
 			onkeydown={handleKeydown}
 			placeholder="bakso 15rb..."
-			class="flex-1 min-h-[44px] px-4 py-2 rounded-lg bg-background border border-border text-text placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+			class="flex-1 min-h-[44px] px-4 py-2 rounded-lg bg-background dark:bg-gray-700 border border-border dark:border-gray-600 text-text dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-secondary focus:border-transparent"
 		/>
 		<button
 			type="button"

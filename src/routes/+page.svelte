@@ -209,9 +209,9 @@
 	}
 </script>
 
-<div class="p-4 pb-20">
-	<h1 class="text-2xl font-bold text-text">Duit</h1>
-	<p class="text-gray-500 mt-2 mb-4">Simple Financial Tracker</p>
+<div class="p-4 pb-20 bg-background dark:bg-gray-900 min-h-screen">
+	<h1 class="text-2xl font-bold text-text dark:text-gray-100">Duit</h1>
+	<p class="text-gray-500 dark:text-gray-400 mt-2 mb-4">Simple Financial Tracker</p>
 
 	<!-- Spending Summary -->
 	<SpendingSummary />
@@ -221,13 +221,13 @@
 
 	<!-- Recent Transactions -->
 	<div class="mt-6">
-		<h2 class="text-lg font-semibold text-text mb-3">Recent Transactions</h2>
+		<h2 class="text-lg font-semibold text-text dark:text-gray-100 mb-3">Recent Transactions</h2>
 
 		{#if transactions.length === 0}
 			<!-- Empty state -->
-			<div class="bg-white rounded-xl p-8 text-center">
-				<p class="text-gray-400 text-sm">No transactions yet</p>
-				<p class="text-gray-300 text-xs mt-1">Add your first expense using the input below</p>
+			<div class="bg-white dark:bg-gray-800 rounded-xl p-8 text-center">
+				<p class="text-gray-400 dark:text-gray-500 text-sm">No transactions yet</p>
+				<p class="text-gray-300 dark:text-gray-600 text-xs mt-1">Add your first expense using the input below</p>
 			</div>
 		{:else}
 			<!-- Transaction list -->
@@ -288,20 +288,20 @@
 		tabindex="-1"
 	>
 		<div
-			class="bg-white rounded-xl p-6 w-full max-w-sm"
+			class="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-sm"
 			onclick={(e) => e.stopPropagation()}
 			role="dialog"
 			tabindex="-1"
 		>
-			<h3 class="text-lg font-semibold text-text mb-2">Delete Transaction?</h3>
-			<p class="text-gray-500 text-sm mb-6">
+			<h3 class="text-lg font-semibold text-text dark:text-gray-100 mb-2">Delete Transaction?</h3>
+			<p class="text-gray-500 dark:text-gray-400 text-sm mb-6">
 				Are you sure you want to delete "{deletingTransaction?.description}"? This action cannot be undone.
 			</p>
 			<div class="flex gap-3">
 				<button
 					type="button"
 					onclick={cancelDelete}
-					class="flex-1 py-2.5 px-4 rounded-lg border border-border text-text font-medium hover:bg-gray-50 transition-colors"
+					class="flex-1 py-2.5 px-4 rounded-lg border border-border dark:border-gray-600 text-text dark:text-gray-100 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
 				>
 					Cancel
 				</button>

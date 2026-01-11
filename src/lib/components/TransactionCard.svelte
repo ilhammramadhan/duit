@@ -55,7 +55,7 @@
 
 <button
 	type="button"
-	class="w-full flex items-center gap-3 p-4 bg-white rounded-xl hover:bg-gray-50 transition-colors text-left"
+	class="w-full flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left"
 	onclick={onclick}
 >
 	<!-- Category Icon -->
@@ -65,16 +65,16 @@
 
 	<!-- Transaction Details -->
 	<div class="flex-1 min-w-0">
-		<p class="font-medium text-text truncate capitalize">{transaction.description}</p>
+		<p class="font-medium text-text dark:text-gray-100 truncate capitalize">{transaction.description}</p>
 		<div class="flex items-center gap-2 mt-1">
 			<CategoryPill category={transaction.category} size="sm" />
-			<span class="text-xs text-gray-400">{getRelativeTime(transaction.createdAt)}</span>
+			<span class="text-xs text-gray-400 dark:text-gray-500">{getRelativeTime(transaction.createdAt)}</span>
 		</div>
 	</div>
 
 	<!-- Amount -->
 	<div class="flex-shrink-0 text-right">
-		<p class="font-semibold {transaction.type === 'income' ? 'text-success' : 'text-text'}">
+		<p class="font-semibold {transaction.type === 'income' ? 'text-success' : 'text-text dark:text-gray-100'}">
 			{formatRupiah(transaction.amount, transaction.type)}
 		</p>
 	</div>

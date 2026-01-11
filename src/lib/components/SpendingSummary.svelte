@@ -99,21 +99,21 @@
 	});
 </script>
 
-<div class="bg-white rounded-xl p-4 shadow-sm border border-border">
+<div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-border dark:border-gray-700">
 	<div class="flex items-center justify-between">
 		<!-- Today's spending -->
 		<div class="flex-1 text-center">
-			<p class="text-xs text-gray-500 mb-1">Today</p>
-			<p class="text-lg font-bold text-text">{formatRupiah(todayTotal)}</p>
+			<p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Today</p>
+			<p class="text-lg font-bold text-text dark:text-gray-100">{formatRupiah(todayTotal)}</p>
 		</div>
 
 		<!-- Divider -->
-		<div class="w-px h-10 bg-border mx-4"></div>
+		<div class="w-px h-10 bg-border dark:bg-gray-600 mx-4"></div>
 
 		<!-- This week's spending -->
 		<div class="flex-1 text-center">
-			<p class="text-xs text-gray-500 mb-1">This Week</p>
-			<p class="text-lg font-bold text-text">{formatRupiah(weekTotal)}</p>
+			<p class="text-xs text-gray-500 dark:text-gray-400 mb-1">This Week</p>
+			<p class="text-lg font-bold text-text dark:text-gray-100">{formatRupiah(weekTotal)}</p>
 		</div>
 	</div>
 </div>

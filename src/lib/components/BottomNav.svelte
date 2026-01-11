@@ -9,7 +9,7 @@
 	] as const;
 </script>
 
-<nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-border z-50">
+<nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-border dark:border-gray-700 z-50">
 	<div class="flex justify-around items-center h-16">
 		{#each navItems as item}
 			{@const isActive = page.url.pathname === item.href ||
@@ -18,7 +18,9 @@
 				href={item.href}
 				class="flex flex-col items-center justify-center min-w-[44px] min-h-[44px] px-4 py-2 transition-colors"
 				class:text-primary={isActive}
+				class:dark:text-secondary={isActive}
 				class:text-gray-500={!isActive}
+				class:dark:text-gray-400={!isActive}
 			>
 				<item.icon size={24} strokeWidth={isActive ? 2.5 : 2} />
 				<span class="text-xs mt-1 font-medium">{item.label}</span>

@@ -26,8 +26,39 @@
 	--color-border: #E2E8F0;
 }
 
+/* Dark mode color palette */
+:root.dark {
+	--color-primary: #3B82F6;
+	--color-secondary: #60A5FA;
+	--color-accent: #FB923C;
+	--color-background: #111827;
+	--color-text: #F9FAFB;
+	--color-success: #34D399;
+	--color-warning: #FBBF24;
+	--color-danger: #F87171;
+	--color-border: #374151;
+}
+
 body {
 	font-family: 'Plus Jakarta Sans', sans-serif;
 	background-color: var(--color-background);
 	color: var(--color-text);
+}
+
+/* Theme transition - smooth color changes */
+.theme-transition,
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after {
+	transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease !important;
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+	.theme-transition,
+	.theme-transition *,
+	.theme-transition *::before,
+	.theme-transition *::after {
+		transition: none !important;
+	}
 }
