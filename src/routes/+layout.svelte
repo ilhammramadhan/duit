@@ -1,7 +1,12 @@
 <script lang="ts">
 	import '../app.css';
+	import BottomNav from '$lib/components/BottomNav.svelte';
 
 	let { children } = $props();
 </script>
 
-{@render children()}
+<div class="min-h-screen pb-16">
+	{@render children()}
+</div>
+
+<BottomNav />

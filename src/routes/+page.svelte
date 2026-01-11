@@ -1,7 +1,8 @@
 <script lang="ts">
+	// Home page - main dashboard with quick input and recent transactions
 </script>
 
-<main class="min-h-screen bg-background p-4">
+<div class="p-4">
 	<h1 class="text-2xl font-bold text-text">Duit</h1>
-	<p class="text-secondary mt-2">Simple Financial Tracker</p>
-</main>
+	<p class="text-gray-500 mt-2">Simple Financial Tracker</p>
+</div>
