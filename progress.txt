@@ -297,3 +297,139 @@ Iteration: 13
   - getEndOfMonth uses next month's day 0 which gives last day of current month
 ---
 
+## 2026-01-11 - US-014
+Iteration: 14
+- Implemented budget warning on transaction entry
+- Added checkBudgetWarning() function to src/lib/db/index.ts:
+  - Calculates current month's spending for a category
+  - Returns warning type 'exceeded' if 100%+, 'approaching' if 80-99%
+  - Returns exceededBy amount for exceeded warnings
+- Updated ConfirmationModal to emit budgetWarning event after saving expense transactions
+- Added budget warning toast to Home page:
+  - Danger (red) toast for exceeded budgets: "Food budget exceeded by Rp 50.000"
+  - Warning (amber) toast for approaching budgets: "Food budget at 85%"
+  - Auto-dismisses after 4 seconds
+  - Manual dismiss via X button
+  - Slide-down animation from top of screen
+- Typecheck passes (0 errors, 0 warnings), build passes, all 107 tests pass
+- Files changed: src/lib/db/index.ts, src/lib/components/ConfirmationModal.svelte, src/routes/+page.svelte
+- **Learnings for future iterations:**
+  - Use createEventDispatcher with typed events for component communication
+  - BudgetWarning interface exported from db for type safety across components
+  - Use ReturnType<typeof setTimeout> for timeout type annotation
+  - Toast positioned at top-4 with z-50 for proper layering above other content
+  - CSS animations can be defined in component style block for slide effects
+---
+
+## 2026-01-11 - US-015
+Iteration: 15
+- Created MonthSelector.svelte component in src/lib/components/
+- Header displays current month/year in Indonesian locale (e.g., "Januari 2026")
+- Left ChevronLeft arrow navigates to previous month using date-fns subMonths()
+- Right ChevronRight arrow navigates to next month using date-fns addMonths()
+- Right arrow disabled (gray, cursor-not-allowed) when viewing current month (cannot go to future)
+- Uses isSameMonth() from date-fns to compare selected month with current month
+- Defaults to current month when Monthly tab opens via startOfMonth(new Date())
+- Selected month stored in component state via selectedDate prop with onMonthChange callback
+- Integrated into /monthly page with handleMonthChange function
+- Typecheck passes (0 errors, 0 warnings), build passes, all 107 tests pass
+- Files changed: src/lib/components/MonthSelector.svelte (new), src/routes/monthly/+page.svelte
+- **Learnings for future iterations:**
+  - Use date-fns format() with { locale: idLocale } for Indonesian month names
+  - date-fns functions: startOfMonth, subMonths, addMonths, isSameMonth for month navigation
+  - ChevronLeft, ChevronRight icons from lucide-svelte for navigation arrows
+  - Use $derived() for computed values based on props (e.g., canGoNext, displayText)
+  - Parent component holds selectedDate state and passes via props with callback for changes
+---
+
+## 2026-01-11 - US-016
+Iteration: 16
+- Created MonthlySummary.svelte component in src/lib/components/
+- Displays three columns: Total Income, Total Expenses, Net (income - expenses)
+- Uses Dexie liveQuery with subscription for reactive updates when selectedDate changes
+- Uses date-fns startOfMonth() and endOfMonth() for month range calculations
+- Color coding: income always green (text-success), net green if >= 0, red (text-danger) if negative
+- Rupiah formatting with thousand dot separators using toLocaleString('id-ID')
+- Net shows + prefix for positive values
+- Integrated into Monthly page below MonthSelector
+- Typecheck passes (0 errors, 0 warnings), build passes, all 107 tests pass
+- Files changed: src/lib/components/MonthlySummary.svelte (new), src/routes/monthly/+page.svelte
+- **Learnings for future iterations:**
+  - Use liveQuery with .subscribe() inside $effect() for reactive queries that depend on props
+  - Return cleanup function from $effect() to unsubscribe when dependencies change
+  - Use $derived() for computed values like `net = totalIncome - totalExpenses`
+  - endOfMonth() from date-fns gives last day of month, need to setHours(23,59,59,999) for inclusive range
+---
+
+## 2026-01-11 - US-017
+Iteration: 17
+- Created CategoryBreakdown.svelte component in src/lib/components/
+- Displays spending by category with icons, names, amounts, and percentages
+- Categories sorted by highest spending amount first
+- Each row shows:
+  - Category icon in colored circular background
+  - Category name (Food, Transport, Bills, etc.)
+  - Amount formatted in Rupiah (Rp 45.000)
+  - Percentage of total expenses with number
+  - Horizontal progress bar colored per category
+- Uses Dexie liveQuery for reactive updates when transactions change
+- Only renders when there are transactions for the selected month (empty = component hidden)
+- Integrated into Monthly page below MonthlySummary
+- Typecheck passes (0 errors, 0 warnings), build passes, all 107 tests pass
+- Files changed: src/lib/components/CategoryBreakdown.svelte (new), src/routes/monthly/+page.svelte
+- **Learnings for future iterations:**
+  - Use Exclude<Category, 'income'> type for expense-only category mappings
+  - Map-based aggregation: iterate transactions, accumulate by category, then convert to sorted array
+  - Use {@const IconComponent = CATEGORY_ICONS[item.category]} inside #each for dynamic component rendering
+  - Progress bar width uses inline style with percentage: style="width: {item.percentage}%"
+---
+
+## 2026-01-11 - US-018
+Iteration: 18
+- Created AIInsightCard.svelte component in src/lib/components/
+- Lightbulb icon from lucide-svelte with warning/amber colored circular background
+- Added generateInsight() function to src/lib/services/gemini.ts:
+  - SpendingData interface: totalIncome, totalExpenses, byCategory array, budgetStatus array
+  - Sends spending summary to Gemini API with Indonesian prompt
+  - Returns 1-2 sentence actionable tip in Bahasa Indonesia
+  - Falls back to "Tips tidak tersedia saat ini" on errors or missing API key
+- Loading skeleton: pulsing gray rectangles matching text line shapes (animate-pulse)
+- In-memory Map cache stores insights per month using yyyy-MM key format
+  - Cache persists across component re-renders (module-level Map)
+  - Prevents re-fetching when switching back to already-viewed months
+- Component fetches transactions and budgets using Dexie liveQuery
+- Builds SpendingData from transactions (totals, category breakdown) and budget status
+- Shows default message "Belum ada transaksi bulan ini" if no transactions exist
+- Integrated at top of Monthly page (between MonthSelector and MonthlySummary)
+- Typecheck passes (0 errors, 0 warnings), build passes, all 107 tests pass
+- Files changed: src/lib/components/AIInsightCard.svelte (new), src/lib/services/gemini.ts, src/routes/monthly/+page.svelte
+- **Learnings for future iterations:**
+  - Use module-level Map for caching data that should persist across component lifecycles
+  - format(date, 'yyyy-MM') from date-fns is good for month-level cache keys
+  - Use gradient backgrounds (bg-gradient-to-r) for visually distinct cards
+  - Temperature 0.7 for Gemini gives more varied/creative responses (vs 0.1 for deterministic)
+  - maxOutputTokens: 150 is enough for 1-2 sentence tips
+---
+
+## 2026-01-11 - US-019
+Iteration: 19
+- Added scrollable transaction list to Monthly page below CategoryBreakdown component
+- Transactions grouped by date with date headers in Indonesian locale (e.g., "Senin, 6 Januari")
+- Uses Dexie liveQuery with $effect subscription for reactive updates when selectedDate changes
+- groupedTransactions computed using $derived.by() for date grouping logic
+- Uses TransactionCard component for each transaction (reused from Home page)
+- Tap to edit functionality: opens ConfirmationModal in edit mode with transaction data pre-filled
+- Swipe left to delete with confirmation dialog (same implementation as Home page)
+- Delete confirmation dialog shows transaction description and cannot be undone warning
+- Empty state message: "No transactions this month" with hint to add on Home tab
+- Budget warning toast integrated from ConfirmationModal (same as Home page)
+- Typecheck passes (0 errors, 0 warnings), build passes, all 107 tests pass
+- Files changed: src/routes/monthly/+page.svelte
+- **Learnings for future iterations:**
+  - Use $derived.by(() => {...}) for complex computed values with multiple steps
+  - format(date, 'EEEE, d MMMM', { locale: idLocale }) for localized date headers
+  - Map-based grouping: iterate once, group by key, then convert to sorted array
+  - endOfMonth() needs setHours(23, 59, 59, 999) for inclusive date range queries
+  - Reuse TransactionCard, ConfirmationModal, swipe handlers pattern across pages for consistency
+---
+

@@ -246,8 +246,8 @@
         "Verify in browser (build passes, visual check)"
       ],
       "priority": 14,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Added checkBudgetWarning() function in db/index.ts. ConfirmationModal emits budgetWarning event after saving expense transactions. Home page displays warning toast (amber for 80-99%, red for 100%+) with auto-dismiss after 4 seconds. Toast shows category name, percentage or exceeded amount. Typecheck and build pass."
     },
     {
       "id": "US-015",
@@ -265,8 +265,8 @@
         "Verify in browser (build passes, visual check)"
       ],
       "priority": 15,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Created MonthSelector.svelte with ChevronLeft/ChevronRight icons from lucide-svelte. Uses date-fns for month formatting (Indonesian locale) and navigation (subMonths, addMonths). Right arrow disabled when viewing current month (cannot go to future). Defaults to current month on tab open. Month stored in component state via selectedDate prop. Typecheck and build pass."
     },
     {
       "id": "US-016",
@@ -282,8 +282,8 @@
         "Verify in browser (build passes, visual check)"
       ],
       "priority": 16,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Created MonthlySummary.svelte component with Total Income, Total Expenses, and Net display. Uses Dexie liveQuery for reactive updates when selectedDate changes. Net positive in green (#22C55E), negative in red (#EF4444). Rupiah formatting with thousand dot separators. Integrated into /monthly page below MonthSelector. Typecheck and build pass."
     },
     {
       "id": "US-017",
@@ -299,8 +299,8 @@
         "Verify in browser (build passes, visual check)"
       ],
       "priority": 17,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Created CategoryBreakdown.svelte with Dexie liveQuery for reactive updates. Categories sorted by highest spending amount. Each row shows icon in colored circular background, category name, amount in Rupiah format, percentage, and horizontal progress bar. Only displays if transactions exist for the selected month. Integrated into /monthly page. Typecheck and build pass."
     },
     {
       "id": "US-018",
@@ -318,8 +318,8 @@
         "Verify in browser (build passes, visual check)"
       ],
       "priority": 18,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Created AIInsightCard.svelte with Lightbulb icon from lucide-svelte. Added generateInsight() function to gemini.ts that sends month's spending data (total income/expenses, by category, budget status) to Gemini API. Returns 1-2 sentence actionable tip in Bahasa Indonesia. Loading skeleton shows pulsing gray rectangles while fetching. Falls back to 'Tips tidak tersedia saat ini' if API unavailable. In-memory Map cache stores insights per month (yyyy-MM key) to avoid re-fetching on tab switch. Integrated at top of Monthly page. Typecheck and build pass."
     },
     {
       "id": "US-019",
@@ -336,8 +336,8 @@
         "Verify in browser (build passes, visual check)"
       ],
       "priority": 19,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Added scrollable transaction list below CategoryBreakdown on Monthly page. Transactions grouped by date using date-fns format() with Indonesian locale (e.g., 'Senin, 6 Januari'). Uses TransactionCard component. Tap to edit opens ConfirmationModal in edit mode. Swipe left to delete with confirmation dialog. Empty state shown when no transactions for selected month. Typecheck and build pass."
     },
     {
       "id": "US-020",
