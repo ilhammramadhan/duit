@@ -192,8 +192,8 @@
         "Verify in browser (build passes, visual check)"
       ],
       "priority": 11,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Implemented recent transactions list with Dexie liveQuery for reactive updates. TransactionCard displays each transaction with tap to edit (ConfirmationModal in edit mode). Swipe left to delete with confirmation dialog. Empty state message shown when no transactions. Typecheck and build pass."
     },
     {
       "id": "US-012",
@@ -211,8 +211,8 @@
         "Verify in browser (build passes, visual check)"
       ],
       "priority": 12,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Created /settings/budgets page with all 6 expense categories. Each category has Rupiah input field with thousand separator formatting. Budget saved to IndexedDB via setBudget() on blur/Enter. Toast confirmation shown on save with green success style. Settings main page updated with Budgets link. Typecheck and build pass."
     },
     {
       "id": "US-013",
@@ -229,8 +229,8 @@
         "Verify in browser (build passes, visual check)"
       ],
       "priority": 13,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Created BudgetBar.svelte component with category icons, progress bar showing spent/limit amounts and percentage. Color-coded bars: blue (0-79%), orange (80-99%), red (100%+). Uses Dexie liveQuery for reactive updates. Only displays categories with budget limits > 0. Integrated on Home page below SpendingSummary. Typecheck and build pass."
     },
     {
       "id": "US-014",

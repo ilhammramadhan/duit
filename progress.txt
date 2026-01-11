@@ -230,3 +230,70 @@ Iteration: 10
   - Use `truncate` class for overflow text in card layouts
 ---
 
+## 2026-01-11 - US-011
+Iteration: 11
+- Implemented recent transactions list on Home page
+  - Displays last 10 transactions using TransactionCard component
+  - List sorted by newest first (createdAt descending)
+  - Uses Dexie liveQuery for reactive real-time updates
+- Added tap to edit functionality
+  - ConfirmationModal updated with isEditMode and editingTransaction props
+  - Modal shows "Edit Transaction" header in edit mode
+  - updateTransaction() from db used to save changes
+- Implemented swipe left to delete
+  - Touch handlers track swipe distance
+  - Delete confirmation dialog shown when swipe threshold (60px) exceeded
+  - Transaction deleted via deleteTransaction() from db
+- Added empty state message when no transactions exist
+- Typecheck passes (0 errors, 0 warnings), build passes, all 107 tests pass
+- Files changed: src/routes/+page.svelte, src/lib/components/ConfirmationModal.svelte
+- **Learnings for future iterations:**
+  - Use `$state('other')` instead of `$state(suggestedCategory)` to avoid "state_referenced_locally" warning
+  - For swipe gestures: track touchstart X position, calculate diff in touchmove, trigger action in touchend
+  - Use role="dialog" with tabindex="-1" for accessible modal dialogs
+  - ConfirmationModal can support both create and edit modes with isEditMode boolean prop
+---
+
+## 2026-01-11 - US-012
+Iteration: 12
+- Created budget settings page at /settings/budgets
+- Lists all 6 expense categories (food, transport, bills, shopping, entertainment, other)
+- Each category displays with icon and color-coded circular background
+- Input field for monthly limit in Rupiah with thousand separator formatting
+- Save on blur or Enter key using setBudget() from db
+- Toast notification shown on successful save (green success style)
+- Updated Settings main page with Data section and Budgets link
+- Typecheck passes (0 errors, 0 warnings), build passes, all 107 tests pass
+- Files changed: src/routes/settings/+page.svelte, src/routes/settings/budgets/+page.svelte (new)
+- **Learnings for future iterations:**
+  - Use inputmode="numeric" for mobile-friendly number inputs
+  - Format Rupiah input with toLocaleString('id-ID') for thousand separators
+  - Parse input by removing non-digits before parseInt
+  - Use liveQuery with $effect subscription for reactive IndexedDB data
+  - Settings page pattern: section headers with card-style list items containing icons
+---
+
+## 2026-01-11 - US-013
+Iteration: 13
+- Created BudgetBar.svelte component in src/lib/components/
+- Progress bar shows category name, spent amount / limit amount, and percentage
+- Color-coded bars based on percentage:
+  - Blue (#2563EB / bg-primary) for 0-79%
+  - Orange (#F59E0B / bg-warning) for 80-99%
+  - Red (#EF4444 / bg-danger) for 100%+
+- Only renders for categories with budget limits set (limit > 0)
+- Uses Dexie liveQuery for reactive updates when transactions change
+- Displays category icon in circular colored background
+- Progress bar has smooth width transition animation
+- Sorted by highest percentage first (most concerning)
+- Integrated on Home page below SpendingSummary component
+- Typecheck passes (0 errors, 0 warnings), build passes, all 107 tests pass
+- Files changed: src/lib/components/BudgetBar.svelte (new), src/routes/+page.svelte
+- **Learnings for future iterations:**
+  - Use `$budgetsQuery` syntax to subscribe to liveQuery result in $effect
+  - Combine multiple liveQuery subscriptions in one $effect for cross-data computation
+  - Use Math.min(percentage, 100) to cap progress bar width at 100%
+  - Date range: getStartOfMonth/getEndOfMonth for current month calculations
+  - getEndOfMonth uses next month's day 0 which gives last day of current month
+---
+

@@ -3,6 +3,7 @@
 	import QuickInput from '$lib/components/QuickInput.svelte';
 	import ConfirmationModal from '$lib/components/ConfirmationModal.svelte';
 	import SpendingSummary from '$lib/components/SpendingSummary.svelte';
+	import BudgetBar from '$lib/components/BudgetBar.svelte';
 	import TransactionCard from '$lib/components/TransactionCard.svelte';
 	import { parseInput } from '$lib/services/parser';
 	import { categorizeWithFallback } from '$lib/services/categorizer';
@@ -158,6 +159,9 @@
 
 	<!-- Spending Summary -->
 	<SpendingSummary />
+
+	<!-- Budget Bars -->
+	<BudgetBar />
 
 	<!-- Recent Transactions -->
 	<div class="mt-6">
