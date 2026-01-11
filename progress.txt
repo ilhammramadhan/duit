@@ -1,0 +1,6 @@
+# Ralph Progress Log - Duit Financial Tracker
+# Branch: ralph/duit-financial-tracker
+# Started: 2026-01-11
+
+---
+

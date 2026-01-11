@@ -1,0 +1,538 @@
+{
+  "project": "Duit",
+  "branchName": "ralph/duit-financial-tracker",
+  "description": "Duit - Simple Financial Tracker PWA with AI-powered categorization for natural language expense entry",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Initialize SvelteKit project with Tailwind",
+      "description": "As a developer, I need the base project setup so I can start building features.",
+      "acceptanceCriteria": [
+        "SvelteKit project created with Svelte 5 (runes mode)",
+        "Tailwind CSS configured with custom color palette: primary #2563EB, secondary #60A5FA, accent #F97316, background #F8FAFC, text #1E293B, success #22C55E, warning #F59E0B, danger #EF4444, border #E2E8F0",
+        "Plus Jakarta Sans font imported and set as default",
+        "Base app.css with CSS variables for colors",
+        "Project runs with npm run dev",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Set up IndexedDB with Dexie.js",
+      "description": "As a developer, I need local database setup so transactions persist offline.",
+      "acceptanceCriteria": [
+        "Dexie.js installed and configured in src/lib/db/index.ts",
+        "Database schema created with tables: transactions, budgets, categoryMappings",
+        "TypeScript interfaces defined: Transaction (id, amount, description, category, type, date, createdAt), Budget (category, limit), CategoryMapping (keyword, category, count)",
+        "Category type defined as: 'food' | 'transport' | 'bills' | 'shopping' | 'entertainment' | 'income' | 'other'",
+        "Basic CRUD operations working for each table",
+        "Typecheck passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Create bottom navigation layout",
+      "description": "As a user, I want bottom navigation so I can switch between Home, Monthly, and Settings tabs.",
+      "acceptanceCriteria": [
+        "Bottom nav fixed at screen bottom with 3 tabs: Home, Monthly, Settings",
+        "Icons from Lucide: Home, Calendar, Settings",
+        "Active tab highlighted with primary color (#2563EB)",
+        "Touch targets minimum 44x44px",
+        "Navigation works via SvelteKit routing (/, /monthly, /settings)",
+        "Layout component in +layout.svelte wraps all pages",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Build QuickInput component",
+      "description": "As a user, I want a text input to type expenses naturally so I can log spending quickly.",
+      "acceptanceCriteria": [
+        "QuickInput.svelte component created in src/lib/components/",
+        "Sticky input field at bottom of Home screen (above nav)",
+        "Placeholder text: 'bakso 15rb...'",
+        "Submit on Enter key or tap submit button",
+        "Input clears after successful submission",
+        "Minimum 44px height, full width with padding",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Implement amount parser for Indonesian format",
+      "description": "As a user, I want to type amounts naturally (15rb, 1.5jt) so I don't need formal number formats.",
+      "acceptanceCriteria": [
+        "Parser service created in src/lib/services/parser.ts",
+        "Parser handles: '15rb' -> 15000, '15ribu' -> 15000, '15k' -> 15000",
+        "Parser handles: '15.000' -> 15000, '15,000' -> 15000",
+        "Parser handles: '1.5jt' -> 1500000, '1,5juta' -> 1500000",
+        "parseInput function extracts amount from mixed string: 'bakso 15rb' -> { description: 'bakso', amount: 15000 }",
+        "Returns null for unparseable input",
+        "Unit tests pass for all formats",
+        "Typecheck passes"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Build keyword-based categorizer",
+      "description": "As a user, I want my expenses auto-categorized so I don't have to manually select categories.",
+      "acceptanceCriteria": [
+        "Categorizer service created in src/lib/services/categorizer.ts",
+        "Default keyword mappings loaded for: food (bakso, mie, nasi, kopi, gofood, grabfood), transport (grab, gojek, bensin, parkir, tol), bills (listrik, pln, wifi, pulsa, sewa), shopping (shopee, tokopedia, baju, indomaret), entertainment (netflix, spotify, bioskop, game), income (gaji, salary, freelance, bonus)",
+        "Exact match lookup in categoryMappings table first",
+        "Fuzzy matching for typos using string similarity (e.g., 'bkso' -> 'bakso' -> food)",
+        "Returns category or null if no match found",
+        "Typecheck passes"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "Integrate Gemini API for unknown categories",
+      "description": "As a user, I want AI to categorize unknown expenses so new items are still auto-categorized.",
+      "acceptanceCriteria": [
+        "Gemini API service created in src/lib/services/gemini.ts",
+        "API key read from VITE_GEMINI_API_KEY environment variable",
+        "Prompt asks Gemini to return single category from: food, transport, bills, shopping, entertainment, income, other",
+        "Fallback to 'other' if API unavailable or errors",
+        "Successful AI categorization saved to categoryMappings table for future use",
+        "Network errors handled gracefully (no app crash, returns 'other')",
+        "Typecheck passes"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "Build category confirmation modal",
+      "description": "As a user, I want to confirm or correct the suggested category so wrong categorizations can be fixed.",
+      "acceptanceCriteria": [
+        "ConfirmationModal.svelte component in src/lib/components/",
+        "Modal shows: parsed description, formatted amount (Rp), suggested category",
+        "Category pills for all 7 categories displayed horizontally (tap to change)",
+        "Toggle button for expense/income type",
+        "Confirm button saves transaction to IndexedDB",
+        "Cancel button dismisses modal without saving",
+        "Selected category visually highlighted with primary color",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "Display today/this week spending summary",
+      "description": "As a user, I want to see today's and this week's spending at a glance on the Home screen.",
+      "acceptanceCriteria": [
+        "SpendingSummary.svelte component in src/lib/components/",
+        "Prominent display at top of Home: 'Today: Rp 45.000 | This Week: Rp 320.000'",
+        "Amounts update immediately after adding transaction (reactive)",
+        "Indonesian Rupiah formatting with thousand dot separators (Rp 1.500.000)",
+        "Week starts on Monday, ends Sunday",
+        "Only counts expenses (not income) in totals",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "Build TransactionCard component",
+      "description": "As a developer, I need a reusable transaction display component.",
+      "acceptanceCriteria": [
+        "TransactionCard.svelte component in src/lib/components/",
+        "Shows category icon from Lucide (Utensils for food, Car for transport, etc.)",
+        "Shows description text and formatted amount",
+        "Shows relative time (e.g., '2 hours ago', 'Yesterday') using date-fns or similar",
+        "Color-coded amount: red/neutral for expense, green for income",
+        "CategoryPill.svelte sub-component shows category name with background color",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-011",
+      "title": "Show recent transactions list on Home",
+      "description": "As a user, I want to see my recent transactions so I can review what I've logged.",
+      "acceptanceCriteria": [
+        "Home page displays last 10 transactions using TransactionCard",
+        "List sorted by newest first (createdAt descending)",
+        "Expenses shown with negative indicator, income in green",
+        "Tap transaction opens edit modal (ConfirmationModal pre-filled)",
+        "Swipe left to delete with confirmation dialog",
+        "Empty state message when no transactions exist",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-012",
+      "title": "Create budget management in Settings",
+      "description": "As a user, I want to set monthly budget limits per category so I can control my spending.",
+      "acceptanceCriteria": [
+        "Budget settings page at /settings/budgets",
+        "Lists all 6 expense categories (not income)",
+        "Each category shows input field for monthly limit in Rupiah",
+        "Amounts saved to budgets table in IndexedDB",
+        "Empty or zero means no limit for that category",
+        "Changes save automatically on input blur or Enter key",
+        "Toast confirmation shown on save",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-013",
+      "title": "Build BudgetBar component",
+      "description": "As a user, I want visual progress bars showing budget usage so I can see remaining budget at a glance.",
+      "acceptanceCriteria": [
+        "BudgetBar.svelte component in src/lib/components/",
+        "Progress bar shows: category name, spent amount / limit amount, percentage",
+        "Bar color: blue (#2563EB) for 0-79%, orange (#F59E0B) for 80-99%, red (#EF4444) for 100%+",
+        "Only renders for categories that have budget limits set",
+        "Displayed on Home tab below spending summary",
+        "Updates reactively after adding transaction",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 13,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-014",
+      "title": "Show budget warning on transaction entry",
+      "description": "As a user, I want to be warned when a transaction exceeds my budget so I'm aware of overspending.",
+      "acceptanceCriteria": [
+        "After saving transaction, check if category budget exceeded",
+        "If exceeded (100%+): show warning toast 'Food budget exceeded by Rp 50.000'",
+        "If approaching (80-99%): show caution toast 'Food budget at 85%'",
+        "Toast uses warning (amber) or danger (red) variant",
+        "Toast auto-dismisses after 4 seconds",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 14,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-015",
+      "title": "Build month selector",
+      "description": "As a user, I want to navigate between months so I can review past spending.",
+      "acceptanceCriteria": [
+        "MonthSelector.svelte component in src/lib/components/",
+        "Header shows current month/year: 'January 2026'",
+        "Left arrow button navigates to previous month",
+        "Right arrow button navigates to next month",
+        "Cannot navigate to future months (right arrow disabled)",
+        "Defaults to current month when Monthly tab opens",
+        "Selected month stored in component state or URL param",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 15,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-016",
+      "title": "Display income vs expenses summary",
+      "description": "As a user, I want to see my monthly income vs expenses so I know if I'm saving or overspending.",
+      "acceptanceCriteria": [
+        "MonthlySummary.svelte component in src/lib/components/",
+        "Card shows: Total Income, Total Expenses, Net (income - expenses)",
+        "Net positive shown in green (#22C55E), negative in red (#EF4444)",
+        "All amounts formatted in Rupiah with thousand dot separators",
+        "Data updates when month selection changes",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 16,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-017",
+      "title": "Show category breakdown",
+      "description": "As a user, I want to see spending per category so I know where my money goes.",
+      "acceptanceCriteria": [
+        "CategoryBreakdown.svelte component in src/lib/components/",
+        "List of categories sorted by highest spending amount",
+        "Each row shows: category icon, category name, amount, percentage of total expenses",
+        "Percentage visualized as small horizontal progress bar",
+        "Only shows categories that have transactions for selected month",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 17,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-018",
+      "title": "Build AI insights card",
+      "description": "As a user, I want AI-generated savings tips so I can improve my finances.",
+      "acceptanceCriteria": [
+        "AIInsightCard.svelte component in src/lib/components/",
+        "Card displayed at top of Monthly tab with lightbulb icon from Lucide",
+        "Calls Gemini API with month's spending data (total, by category, vs budget)",
+        "Displays 1-2 sentence actionable tip in Bahasa Indonesia",
+        "Shows loading skeleton while fetching",
+        "Graceful fallback message if API unavailable: 'Tips tidak tersedia saat ini'",
+        "Insight cached in memory for that month (don't re-fetch on tab switch)",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 18,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-019",
+      "title": "Show full transaction list for month",
+      "description": "As a user, I want to see all transactions for a month so I can review details.",
+      "acceptanceCriteria": [
+        "Monthly page shows scrollable transaction list below category breakdown",
+        "Transactions grouped by date with date headers (e.g., 'Monday, 6 January')",
+        "Uses TransactionCard component for each transaction",
+        "Tap to edit functionality (same as Home)",
+        "Swipe to delete with confirmation (same as Home)",
+        "Empty state message if no transactions for selected month",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 19,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-020",
+      "title": "Build Settings page layout",
+      "description": "As a user, I want a settings page to configure the app.",
+      "acceptanceCriteria": [
+        "Settings page at /settings with grouped sections",
+        "Section headers: 'Data', 'Categories', 'Appearance'",
+        "Each settings item shows: icon (Lucide), label text, chevron-right if navigable",
+        "Items: Budgets, Export Data, Import Data (Data section); Manage Categories, AI Keywords (Categories section); Theme (Appearance section)",
+        "Tapping navigable items routes to sub-pages",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 20,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-021",
+      "title": "Implement category management",
+      "description": "As a user, I want to rename categories so they match my preferences.",
+      "acceptanceCriteria": [
+        "Category management page at /settings/categories",
+        "Lists all 7 categories with their current display names",
+        "Each category row has edit button",
+        "Tap edit opens inline text input or modal to rename",
+        "Cannot delete default categories, only rename",
+        "Renamed categories reflected in TransactionCard and CategoryPill throughout app",
+        "Renames stored in localStorage or IndexedDB",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 21,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-022",
+      "title": "Build data export functionality",
+      "description": "As a user, I want to export my data so I have a backup.",
+      "acceptanceCriteria": [
+        "Export Data button in Settings page",
+        "Clicking exports all IndexedDB tables (transactions, budgets, categoryMappings) as JSON",
+        "File downloaded as duit-backup-YYYY-MM-DD.json",
+        "JSON includes version field for future compatibility",
+        "Toast confirmation shown on successful export",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 22,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-023",
+      "title": "Build data import functionality",
+      "description": "As a user, I want to import data so I can restore from backup.",
+      "acceptanceCriteria": [
+        "Import Data button in Settings page",
+        "Opens file picker accepting .json files only",
+        "Validates JSON structure matches expected schema before importing",
+        "Shows confirmation dialog: 'This will replace all existing data. Continue?'",
+        "On confirm: clears existing data and imports from file",
+        "Toast confirmation on successful import",
+        "Error toast if invalid file format with message",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 23,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-024",
+      "title": "Show AI keyword mappings",
+      "description": "As a user, I want to see learned keyword-category mappings so I understand how AI categorizes.",
+      "acceptanceCriteria": [
+        "AI Keywords page at /settings/keywords",
+        "Lists all categoryMappings entries from IndexedDB",
+        "Each row shows: keyword, assigned category (as CategoryPill), usage count",
+        "List sorted by most frequently used (count descending)",
+        "Tap row to edit category assignment via dropdown",
+        "Swipe left to delete mapping with confirmation",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 24,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-025",
+      "title": "Implement theme toggle",
+      "description": "As a user, I want to switch between light and dark mode for comfortable viewing.",
+      "acceptanceCriteria": [
+        "Theme setting in Settings page with 3 options: Light, Dark, System",
+        "Segmented button or dropdown for selection",
+        "Dark mode applies dark color palette (dark backgrounds, light text)",
+        "Preference saved to localStorage",
+        "System option follows device prefers-color-scheme",
+        "Theme transitions respect prefers-reduced-motion (instant switch if reduced motion)",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 25,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-026",
+      "title": "Configure PWA manifest",
+      "description": "As a user, I want to install Duit as an app on my device.",
+      "acceptanceCriteria": [
+        "manifest.json created in static/ folder",
+        "Manifest includes: name 'Duit - Financial Tracker', short_name 'Duit', theme_color #2563EB, background_color #F8FAFC, display standalone",
+        "Icons created: 192x192 and 512x512 PNG in static/icons/",
+        "App installable on Chrome, Safari, Edge browsers",
+        "Correct splash screen displays on iOS and Android",
+        "Typecheck passes",
+        "Verify installation works on mobile device"
+      ],
+      "priority": 26,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-027",
+      "title": "Implement service worker for offline",
+      "description": "As a user, I want Duit to work without internet so I can log expenses anywhere.",
+      "acceptanceCriteria": [
+        "vite-plugin-pwa installed and configured in vite.config.ts",
+        "Precache strategy configured to cache app shell (HTML, CSS, JS, fonts)",
+        "App loads and functions fully offline after initial visit",
+        "Gemini API calls fail gracefully when offline (fallback to 'other' category)",
+        "No error messages shown for local IndexedDB operations when offline",
+        "Typecheck passes",
+        "Verify offline functionality in browser DevTools Network tab"
+      ],
+      "priority": 27,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-028",
+      "title": "Add loading and empty states",
+      "description": "As a user, I want visual feedback during loading so the app feels responsive.",
+      "acceptanceCriteria": [
+        "Skeleton loader components for: transaction list, budget bars, AI insight card",
+        "Skeleton uses pulsing gray rectangles matching content shape",
+        "Empty state messages for: 'No transactions yet' (Home), 'No budgets set' (Budget section), 'No transactions this month' (Monthly)",
+        "Loading spinner shown during AI categorization API call",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 28,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-029",
+      "title": "Implement toast notification system",
+      "description": "As a user, I want feedback toasts so I know when actions succeed or fail.",
+      "acceptanceCriteria": [
+        "Toast.svelte component in src/lib/components/",
+        "Toast variants: success (green), warning (amber), error (red), info (blue)",
+        "Auto-dismiss after 4 seconds",
+        "Manual dismiss with X button",
+        "Multiple toasts stack vertically",
+        "Positioned at top of screen with safe area padding",
+        "Toast store in src/lib/stores/ for programmatic triggering",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 29,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-030",
+      "title": "Add transaction edit functionality",
+      "description": "As a user, I want to edit existing transactions so I can fix mistakes.",
+      "acceptanceCriteria": [
+        "Tapping TransactionCard opens ConfirmationModal in edit mode",
+        "Modal pre-filled with existing transaction values",
+        "Can change: description, amount, category, type (expense/income), date",
+        "Date picker for changing transaction date",
+        "Save button updates transaction in IndexedDB",
+        "Delete button shown in edit mode, removes transaction with confirmation dialog",
+        "Typecheck passes",
+        "Verify in browser (build passes, visual check)"
+      ],
+      "priority": 30,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
