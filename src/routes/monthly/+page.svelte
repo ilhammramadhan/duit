@@ -1,8 +1,21 @@
 <script lang="ts">
-	// Monthly page - spending breakdown by month
+	import MonthSelector from '$lib/components/MonthSelector.svelte';
+	import { startOfMonth } from 'date-fns';
+
+	// Selected month state - defaults to current month
+	let selectedDate = $state(startOfMonth(new Date()));
+
+	function handleMonthChange(newDate: Date) {
+		selectedDate = newDate;
+	}
 </script>
 
-<div class="p-4">
-	<h1 class="text-2xl font-bold text-text">Monthly</h1>
-	<p class="text-gray-500 mt-2">Your monthly spending breakdown will appear here.</p>
+<div class="p-4 pb-20 space-y-4">
+	<!-- Month Selector -->
+	<MonthSelector {selectedDate} onMonthChange={handleMonthChange} />
+
+	<!-- Placeholder for other monthly components -->
+	<div class="bg-white rounded-xl p-4 shadow-sm border border-border">
+		<p class="text-gray-500">Your monthly spending breakdown will appear here.</p>
+	</div>
 </div>
