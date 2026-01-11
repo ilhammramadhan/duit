@@ -298,3 +298,167 @@ export async function exportAllData(): Promise<BackupData> {
     }
   };
 }
+
+/**
+ * Import validation result
+ */
+export interface ImportValidationResult {
+  valid: boolean;
+  error?: string;
+  data?: BackupData;
+  stats?: {
+    transactions: number;
+    budgets: number;
+    mappings: number;
+  };
+}
+
+/**
+ * Valid categories for validation
+ */
+const VALID_CATEGORIES: Category[] = ['food', 'transport', 'bills', 'shopping', 'entertainment', 'income', 'other'];
+
+/**
+ * Validate backup data structure before importing
+ */
+export function validateBackupData(data: unknown): ImportValidationResult {
+  // Check if data is an object
+  if (!data || typeof data !== 'object') {
+    return { valid: false, error: 'Invalid file format: expected JSON object' };
+  }
+
+  const backup = data as Record<string, unknown>;
+
+  // Check version field
+  if (typeof backup.version !== 'number') {
+    return { valid: false, error: 'Invalid file format: missing or invalid version field' };
+  }
+
+  // Check data field exists
+  if (!backup.data || typeof backup.data !== 'object') {
+    return { valid: false, error: 'Invalid file format: missing data field' };
+  }
+
+  const backupData = backup.data as Record<string, unknown>;
+
+  // Check transactions array
+  if (!Array.isArray(backupData.transactions)) {
+    return { valid: false, error: 'Invalid file format: transactions must be an array' };
+  }
+
+  // Validate each transaction
+  for (const t of backupData.transactions) {
+    if (typeof t !== 'object' || t === null) {
+      return { valid: false, error: 'Invalid transaction format' };
+    }
+    const tx = t as Record<string, unknown>;
+
+    if (typeof tx.amount !== 'number' || tx.amount < 0) {
+      return { valid: false, error: 'Invalid transaction: amount must be a positive number' };
+    }
+    if (typeof tx.description !== 'string') {
+      return { valid: false, error: 'Invalid transaction: description must be a string' };
+    }
+    if (!VALID_CATEGORIES.includes(tx.category as Category)) {
+      return { valid: false, error: `Invalid transaction: unknown category "${tx.category}"` };
+    }
+    if (tx.type !== 'expense' && tx.type !== 'income') {
+      return { valid: false, error: 'Invalid transaction: type must be "expense" or "income"' };
+    }
+  }
+
+  // Check budgets array
+  if (!Array.isArray(backupData.budgets)) {
+    return { valid: false, error: 'Invalid file format: budgets must be an array' };
+  }
+
+  // Validate each budget
+  for (const b of backupData.budgets) {
+    if (typeof b !== 'object' || b === null) {
+      return { valid: false, error: 'Invalid budget format' };
+    }
+    const budget = b as Record<string, unknown>;
+
+    if (!VALID_CATEGORIES.includes(budget.category as Category)) {
+      return { valid: false, error: `Invalid budget: unknown category "${budget.category}"` };
+    }
+    if (typeof budget.limit !== 'number' || budget.limit < 0) {
+      return { valid: false, error: 'Invalid budget: limit must be a positive number' };
+    }
+  }
+
+  // Check categoryMappings array
+  if (!Array.isArray(backupData.categoryMappings)) {
+    return { valid: false, error: 'Invalid file format: categoryMappings must be an array' };
+  }
+
+  // Validate each category mapping
+  for (const m of backupData.categoryMappings) {
+    if (typeof m !== 'object' || m === null) {
+      return { valid: false, error: 'Invalid category mapping format' };
+    }
+    const mapping = m as Record<string, unknown>;
+
+    if (typeof mapping.keyword !== 'string' || mapping.keyword.trim() === '') {
+      return { valid: false, error: 'Invalid category mapping: keyword must be a non-empty string' };
+    }
+    if (!VALID_CATEGORIES.includes(mapping.category as Category)) {
+      return { valid: false, error: `Invalid category mapping: unknown category "${mapping.category}"` };
+    }
+    if (typeof mapping.count !== 'number' || mapping.count < 0) {
+      return { valid: false, error: 'Invalid category mapping: count must be a positive number' };
+    }
+  }
+
+  // All validations passed
+  const validBackup: BackupData = {
+    version: backup.version as number,
+    exportedAt: backup.exportedAt as string || new Date().toISOString(),
+    data: {
+      transactions: backupData.transactions as Transaction[],
+      budgets: backupData.budgets as Budget[],
+      categoryMappings: backupData.categoryMappings as CategoryMapping[]
+    }
+  };
+
+  return {
+    valid: true,
+    data: validBackup,
+    stats: {
+      transactions: validBackup.data.transactions.length,
+      budgets: validBackup.data.budgets.length,
+      mappings: validBackup.data.categoryMappings.length
+    }
+  };
+}
+
+/**
+ * Import all data from backup, replacing existing data
+ */
+export async function importAllData(backupData: BackupData): Promise<void> {
+  // Clear existing data
+  await db.transactions.clear();
+  await db.budgets.clear();
+  await db.categoryMappings.clear();
+
+  // Import transactions (need to convert date strings back to Date objects)
+  const transactionsToImport = backupData.data.transactions.map(t => ({
+    ...t,
+    date: new Date(t.date),
+    createdAt: new Date(t.createdAt)
+  }));
+
+  if (transactionsToImport.length > 0) {
+    await db.transactions.bulkAdd(transactionsToImport);
+  }
+
+  // Import budgets
+  if (backupData.data.budgets.length > 0) {
+    await db.budgets.bulkPut(backupData.data.budgets);
+  }
+
+  // Import category mappings
+  if (backupData.data.categoryMappings.length > 0) {
+    await db.categoryMappings.bulkPut(backupData.data.categoryMappings);
+  }
+}
