@@ -1,4 +1,5 @@
 import { getCategoryMapping, type Category } from '$lib/db';
+import { categorizeWithGemini, isGeminiAvailable } from './gemini';
 
 // Default keyword mappings for common Indonesian expenses
 export const DEFAULT_KEYWORDS: Record<string, Category> = {
@@ -253,6 +254,40 @@ export async function categorize(description: string): Promise<Category | null> 
 }
 
 /**
+ * Categorize a description string, using Gemini API as fallback for unknown categories
+ *
+ * Priority:
+ * 1. Exact match in categoryMappings table (user-learned mappings)
+ * 2. Exact match in default keywords
+ * 3. Fuzzy match in default keywords (for typos)
+ * 4. Gemini API for unknown categories (if available)
+ * 5. Returns 'other' if all else fails
+ *
+ * @param description - The description to categorize
+ * @param useGemini - Whether to use Gemini API for unknown categories (default: true)
+ * @returns The category (never null - falls back to 'other')
+ */
+export async function categorizeWithFallback(
+  description: string,
+  useGemini: boolean = true
+): Promise<Category> {
+  // First try local categorization
+  const localCategory = await categorize(description);
+
+  if (localCategory) {
+    return localCategory;
+  }
+
+  // If local categorization failed and Gemini is enabled, try Gemini API
+  if (useGemini && isGeminiAvailable()) {
+    return await categorizeWithGemini(description, true);
+  }
+
+  // Fallback to 'other'
+  return 'other';
+}
+
+/**
  * Get category from default keywords only (synchronous)
  * Useful for quick lookups without database access
  */
@@ -299,3 +334,6 @@ export function categorizeFromDefaults(description: string): Category | null {
 
 // Export utility functions for testing
 export { levenshteinDistance, stringSimilarity, findFuzzyMatch };
+
+// Re-export Gemini functions for convenience
+export { categorizeWithGemini, isGeminiAvailable } from './gemini';
