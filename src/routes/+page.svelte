@@ -1,16 +1,51 @@
 <script lang="ts">
+	import { liveQuery } from 'dexie';
 	import QuickInput from '$lib/components/QuickInput.svelte';
 	import ConfirmationModal from '$lib/components/ConfirmationModal.svelte';
 	import SpendingSummary from '$lib/components/SpendingSummary.svelte';
+	import TransactionCard from '$lib/components/TransactionCard.svelte';
 	import { parseInput } from '$lib/services/parser';
 	import { categorizeWithFallback } from '$lib/services/categorizer';
-	import type { Category } from '$lib/db';
+	import { db, deleteTransaction, type Category, type Transaction } from '$lib/db';
+
+	// Recent transactions (last 10, newest first)
+	let transactions: Transaction[] = $state([]);
+
+	// Subscribe to live query for transactions
+	const transactionsQuery = liveQuery(() =>
+		db.transactions.orderBy('createdAt').reverse().limit(10).toArray()
+	);
+
+	$effect(() => {
+		const subscription = transactionsQuery.subscribe({
+			next: (value) => {
+				transactions = value;
+			},
+			error: (err) => {
+				console.error('Failed to load transactions:', err);
+			}
+		});
+		return () => subscription.unsubscribe();
+	});
 
 	// Modal state
 	let showModal = $state(false);
 	let parsedDescription = $state('');
 	let parsedAmount = $state(0);
 	let suggestedCategory = $state<Category>('other');
+
+	// Edit mode state
+	let isEditMode = $state(false);
+	let editingTransaction = $state<Transaction | null>(null);
+
+	// Delete confirmation state
+	let showDeleteConfirm = $state(false);
+	let deletingTransaction = $state<Transaction | null>(null);
+
+	// Swipe tracking state
+	let swipeStartX = $state(0);
+	let swipingTransactionId = $state<number | null>(null);
+	let swipeOffset = $state(0);
 
 	async function handleQuickInputSubmit(event: CustomEvent<string>) {
 		const input = event.detail;
@@ -27,23 +62,93 @@
 		// Get suggested category
 		const category = await categorizeWithFallback(parsed.description);
 
-		// Set modal data
+		// Set modal data for new transaction
 		parsedDescription = parsed.description;
 		parsedAmount = parsed.amount;
 		suggestedCategory = category;
+		isEditMode = false;
+		editingTransaction = null;
 
 		// Show the modal
 		showModal = true;
 	}
 
+	function handleTransactionClick(transaction: Transaction) {
+		// Open modal in edit mode
+		parsedDescription = transaction.description;
+		parsedAmount = transaction.amount;
+		suggestedCategory = transaction.category;
+		isEditMode = true;
+		editingTransaction = transaction;
+		showModal = true;
+	}
+
 	function handleConfirm() {
-		// Transaction was saved successfully
-		console.log('Transaction saved');
+		// Transaction was saved/updated successfully
+		isEditMode = false;
+		editingTransaction = null;
 	}
 
 	function handleCancel() {
 		// Modal was cancelled
-		console.log('Transaction cancelled');
+		isEditMode = false;
+		editingTransaction = null;
+	}
+
+	// Swipe handlers
+	function handleTouchStart(event: TouchEvent, transaction: Transaction) {
+		swipeStartX = event.touches[0].clientX;
+		swipingTransactionId = transaction.id ?? null;
+		swipeOffset = 0;
+	}
+
+	function handleTouchMove(event: TouchEvent) {
+		if (swipingTransactionId === null) return;
+
+		const currentX = event.touches[0].clientX;
+		const diff = swipeStartX - currentX;
+
+		// Only allow left swipe (positive diff)
+		if (diff > 0) {
+			swipeOffset = Math.min(diff, 100); // Cap at 100px
+		} else {
+			swipeOffset = 0;
+		}
+	}
+
+	function handleTouchEnd() {
+		if (swipingTransactionId === null) return;
+
+		// If swiped more than 60px, show delete confirmation
+		if (swipeOffset > 60) {
+			const transaction = transactions.find((t) => t.id === swipingTransactionId);
+			if (transaction) {
+				deletingTransaction = transaction;
+				showDeleteConfirm = true;
+			}
+		}
+
+		// Reset swipe state
+		swipingTransactionId = null;
+		swipeOffset = 0;
+	}
+
+	async function confirmDelete() {
+		if (!deletingTransaction?.id) return;
+
+		try {
+			await deleteTransaction(deletingTransaction.id);
+		} catch (error) {
+			console.error('Failed to delete transaction:', error);
+		}
+
+		showDeleteConfirm = false;
+		deletingTransaction = null;
+	}
+
+	function cancelDelete() {
+		showDeleteConfirm = false;
+		deletingTransaction = null;
 	}
 </script>
 
@@ -54,7 +159,49 @@
 	<!-- Spending Summary -->
 	<SpendingSummary />
 
-	<!-- Transaction list will go here in future stories -->
+	<!-- Recent Transactions -->
+	<div class="mt-6">
+		<h2 class="text-lg font-semibold text-text mb-3">Recent Transactions</h2>
+
+		{#if transactions.length === 0}
+			<!-- Empty state -->
+			<div class="bg-white rounded-xl p-8 text-center">
+				<p class="text-gray-400 text-sm">No transactions yet</p>
+				<p class="text-gray-300 text-xs mt-1">Add your first expense using the input below</p>
+			</div>
+		{:else}
+			<!-- Transaction list -->
+			<div class="space-y-2">
+				{#each transactions as transaction (transaction.id)}
+					<div
+						class="relative overflow-hidden rounded-xl"
+						ontouchstart={(e) => handleTouchStart(e, transaction)}
+						ontouchmove={handleTouchMove}
+						ontouchend={handleTouchEnd}
+					>
+						<!-- Delete indicator background -->
+						<div
+							class="absolute inset-y-0 right-0 bg-danger flex items-center justify-end pr-4 rounded-xl"
+							style="width: {swipingTransactionId === transaction.id ? Math.max(swipeOffset, 0) : 0}px"
+						>
+							<span class="text-white text-sm font-medium">Delete</span>
+						</div>
+
+						<!-- Transaction card -->
+						<div
+							class="relative transition-transform"
+							style="transform: translateX({swipingTransactionId === transaction.id ? -swipeOffset : 0}px)"
+						>
+							<TransactionCard
+								{transaction}
+								onclick={() => handleTransactionClick(transaction)}
+							/>
+						</div>
+					</div>
+				{/each}
+			</div>
+		{/if}
+	</div>
 </div>
 
 <QuickInput on:submit={handleQuickInputSubmit} />
@@ -64,6 +211,47 @@
 	description={parsedDescription}
 	amount={parsedAmount}
 	{suggestedCategory}
+	{isEditMode}
+	{editingTransaction}
 	on:confirm={handleConfirm}
 	on:cancel={handleCancel}
 />
+
+<!-- Delete Confirmation Dialog -->
+{#if showDeleteConfirm}
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<div
+		class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+		onclick={cancelDelete}
+		role="button"
+		tabindex="-1"
+	>
+		<div
+			class="bg-white rounded-xl p-6 w-full max-w-sm"
+			onclick={(e) => e.stopPropagation()}
+			role="dialog"
+			tabindex="-1"
+		>
+			<h3 class="text-lg font-semibold text-text mb-2">Delete Transaction?</h3>
+			<p class="text-gray-500 text-sm mb-6">
+				Are you sure you want to delete "{deletingTransaction?.description}"? This action cannot be undone.
+			</p>
+			<div class="flex gap-3">
+				<button
+					type="button"
+					onclick={cancelDelete}
+					class="flex-1 py-2.5 px-4 rounded-lg border border-border text-text font-medium hover:bg-gray-50 transition-colors"
+				>
+					Cancel
+				</button>
+				<button
+					type="button"
+					onclick={confirmDelete}
+					class="flex-1 py-2.5 px-4 rounded-lg bg-danger text-white font-medium hover:bg-danger/90 transition-colors"
+				>
+					Delete
+				</button>
+			</div>
+		</div>
+	</div>
+{/if}

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { X } from 'lucide-svelte';
 	import { createEventDispatcher } from 'svelte';
-	import { addTransaction, type Category, type TransactionType } from '$lib/db';
+	import { addTransaction, updateTransaction, type Category, type TransactionType, type Transaction } from '$lib/db';
 
 	// All available categories
 	const CATEGORIES: Category[] = ['food', 'transport', 'bills', 'shopping', 'entertainment', 'income', 'other'];
@@ -23,20 +23,27 @@
 		description: string;
 		amount: number;
 		suggestedCategory: Category;
+		isEditMode?: boolean;
+		editingTransaction?: Transaction | null;
 	}
 
-	let { show = $bindable(), description, amount, suggestedCategory }: Props = $props();
+	let { show = $bindable(), description, amount, suggestedCategory, isEditMode = false, editingTransaction = null }: Props = $props();
 
 	// Local state
-	let selectedCategory: Category = $state(suggestedCategory);
+	let selectedCategory: Category = $state('other');
 	let transactionType: TransactionType = $state('expense');
 	let isSaving = $state(false);
 
-	// Update selected category when suggested category changes
+	// Update selected category when suggested category changes or when editing
 	$effect(() => {
-		selectedCategory = suggestedCategory;
-		// Auto-set type to income if income category is suggested
-		transactionType = suggestedCategory === 'income' ? 'income' : 'expense';
+		if (isEditMode && editingTransaction) {
+			selectedCategory = editingTransaction.category;
+			transactionType = editingTransaction.type;
+		} else {
+			selectedCategory = suggestedCategory;
+			// Auto-set type to income if income category is suggested
+			transactionType = suggestedCategory === 'income' ? 'income' : 'expense';
+		}
 	});
 
 	const dispatch = createEventDispatcher<{ confirm: void; cancel: void }>();
@@ -74,20 +81,32 @@
 	}
 
 	/**
-	 * Save transaction to IndexedDB
+	 * Save transaction to IndexedDB (add new or update existing)
 	 */
 	async function handleConfirm() {
 		if (isSaving) return;
 
 		isSaving = true;
 		try {
-			await addTransaction({
-				description,
-				amount,
-				category: selectedCategory,
-				type: transactionType,
-				date: new Date()
-			});
+			if (isEditMode && editingTransaction?.id) {
+				// Update existing transaction
+				await updateTransaction(editingTransaction.id, {
+					description,
+					amount,
+					category: selectedCategory,
+					type: transactionType,
+					date: editingTransaction.date
+				});
+			} else {
+				// Add new transaction
+				await addTransaction({
+					description,
+					amount,
+					category: selectedCategory,
+					type: transactionType,
+					date: new Date()
+				});
+			}
 			dispatch('confirm');
 			show = false;
 		} catch (error) {
@@ -139,7 +158,7 @@
 		<div class="bg-white rounded-t-2xl w-full max-w-lg p-6 pb-8 animate-slide-up">
 			<!-- Header -->
 			<div class="flex items-center justify-between mb-6">
-				<h2 class="text-lg font-semibold text-text">Confirm Transaction</h2>
+				<h2 class="text-lg font-semibold text-text">{isEditMode ? 'Edit Transaction' : 'Confirm Transaction'}</h2>
 				<button
 					type="button"
 					onclick={handleCancel}
@@ -223,7 +242,7 @@
 					disabled={isSaving}
 					class="flex-1 py-3 px-4 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 				>
-					{isSaving ? 'Saving...' : 'Confirm'}
+					{isSaving ? 'Saving...' : isEditMode ? 'Save' : 'Confirm'}
 				</button>
 			</div>
 		</div>
