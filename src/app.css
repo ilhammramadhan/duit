@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme {
+	--color-primary: #2563EB;
+	--color-secondary: #60A5FA;
+	--color-accent: #F97316;
+	--color-background: #F8FAFC;
+	--color-text: #1E293B;
+	--color-success: #22C55E;
+	--color-warning: #F59E0B;
+	--color-danger: #EF4444;
+	--color-border: #E2E8F0;
+
+	--font-family-sans: 'Plus Jakarta Sans', sans-serif;
+}
+
+:root {
+	--color-primary: #2563EB;
+	--color-secondary: #60A5FA;
+	--color-accent: #F97316;
+	--color-background: #F8FAFC;
+	--color-text: #1E293B;
+	--color-success: #22C55E;
+	--color-warning: #F59E0B;
+	--color-danger: #EF4444;
+	--color-border: #E2E8F0;
+}
+
+body {
+	font-family: 'Plus Jakarta Sans', sans-serif;
+	background-color: var(--color-background);
+	color: var(--color-text);
+}
