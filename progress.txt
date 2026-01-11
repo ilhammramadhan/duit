@@ -6,6 +6,7 @@
 - Tailwind v4 uses `@import "tailwindcss"` and `@theme { }` for custom colors
 - Svelte 5 runes mode uses `$props()` instead of `export let`
 - Custom colors defined both in `@theme` (for Tailwind classes) and `:root` (for CSS variables)
+- Database: Dexie.js v4 in `src/lib/db/index.ts` with EntityTable types and CRUD functions exported
 
 ---
 
@@ -22,5 +23,23 @@ Iteration: 1
   - Tailwind v4 uses `@theme { }` block syntax for custom colors instead of tailwind.config.js
   - Svelte 5 runes mode: use `$props()` for receiving props, `$state()` for reactive state
   - Plus Jakarta Sans loaded via Google Fonts CDN in app.html
+---
+
+## 2026-01-11 - US-002
+Iteration: 2
+- Installed Dexie.js v4.2.1 for IndexedDB wrapper
+- Created src/lib/db/index.ts with database configuration
+- Defined TypeScript interfaces: Transaction, Budget, CategoryMapping
+- Defined Category type with all 7 categories
+- Defined TransactionType as 'expense' | 'income'
+- Created database schema with indexed columns for efficient querying
+- Implemented full CRUD operations for all three tables
+- Typecheck passes (0 errors, 0 warnings)
+- Files changed: package.json, package-lock.json, src/lib/db/index.ts
+- **Learnings for future iterations:**
+  - Dexie v4 uses EntityTable type for typed table access
+  - Use `++id` in schema for auto-increment primary keys
+  - The `add()` method can return `number | undefined` so type assertion may be needed
+  - Use `.orderBy().reverse()` for descending sort, `.limit()` for pagination
 ---
 
